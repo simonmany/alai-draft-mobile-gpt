@@ -41,6 +41,10 @@ const Dashboard = () => {
     console.log("Opening scheduling interface for:", getNextAvailableSlot());
   };
 
+  const handleEventClick = (event: typeof upcomingEvents[0]) => {
+    console.log("Opening event details for:", event.title, "at", event.time);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -66,7 +70,11 @@ const Dashboard = () => {
           </div>
           <div className="space-y-4">
             {upcomingEvents.map((event) => (
-              <div key={event.id} className="flex items-center space-x-3">
+              <div 
+                key={event.id} 
+                onClick={() => handleEventClick(event)}
+                className="flex items-center space-x-3 p-2 rounded-md cursor-pointer hover:bg-assistant-muted/50 transition-colors"
+              >
                 <div className={`w-2 h-2 rounded-full ${
                   event.type === 'work' ? 'bg-assistant-primary' : 'bg-assistant-secondary'
                 }`} />
