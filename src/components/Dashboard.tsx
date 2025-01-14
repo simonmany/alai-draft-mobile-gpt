@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, Users, Activity, Bell } from "lucide-react";
+import { Calendar, Users, Activity, Bell, Plus } from "lucide-react";
 
 const Dashboard = () => {
   const upcomingEvents = [
@@ -27,8 +27,9 @@ const Dashboard = () => {
         </button>
       </div>
 
-      <div className="flex flex-col items-center justify-center mb-8">
-        <Button size="lg" className="bg-assistant-primary hover:bg-assistant-primary/90 text-white text-lg py-6 px-12">
+      <div className="w-full">
+        <Button size="lg" className="bg-assistant-primary hover:bg-assistant-primary/90 text-white text-lg py-6 w-full">
+          <Plus className="mr-2" />
           Let's Plan Something!
         </Button>
       </div>
