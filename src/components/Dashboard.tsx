@@ -72,7 +72,9 @@ const Dashboard = () => {
           <Card className="p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-gray-900">Today's Schedule</h2>
-              <Calendar className="h-5 w-5 text-assistant-primary" />
+              <Link to="/calendar" className="text-assistant-primary hover:text-assistant-primary/80 transition-colors">
+                <Calendar className="h-7 w-7" />
+              </Link>
             </div>
             <div className="space-y-4">
               {upcomingEvents.map((event) => (
@@ -118,7 +120,9 @@ const Dashboard = () => {
           <Card className="p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-gray-900">Recent Contacts</h2>
-              <Users className="h-5 w-5 text-assistant-primary" />
+              <Link to="/contacts" className="text-assistant-primary hover:text-assistant-primary/80 transition-colors">
+                <Users className="h-7 w-7" />
+              </Link>
             </div>
             <div className="space-y-4">
               {recentContacts.map((contact) => (
@@ -159,7 +163,9 @@ const Dashboard = () => {
       <Card className="p-6 w-full">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-900">Health Overview</h2>
-          <Activity className="h-5 w-5 text-assistant-primary" />
+          <Link to="/health" className="text-assistant-primary hover:text-assistant-primary/80 transition-colors">
+            <Activity className="h-7 w-7" />
+          </Link>
         </div>
         <div className="space-y-4">
           {healthMetrics.map((metric) => (
