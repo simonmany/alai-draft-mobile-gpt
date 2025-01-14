@@ -18,6 +18,29 @@ const Dashboard = () => {
     { id: 2, name: "Sleep", value: "7h 20m", goal: "8h" },
   ];
 
+  // Calculate next available slot (after the last event)
+  const getNextAvailableSlot = () => {
+    if (upcomingEvents.length === 0) return "9:00 AM";
+    const lastEvent = upcomingEvents[upcomingEvents.length - 1];
+    const [hour, period] = lastEvent.time.split(" ");
+    const [hourNum, minutes] = hour.split(":");
+    let nextHour = parseInt(hourNum);
+    
+    // Add 1.5 hours to the last event's time
+    nextHour = period === "PM" ? nextHour + 12 : nextHour;
+    nextHour = nextHour + 1;
+    if (nextHour >= 24) nextHour = 9; // Reset to 9 AM if it goes past midnight
+    
+    const finalPeriod = nextHour >= 12 ? "PM" : "AM";
+    const displayHour = nextHour > 12 ? nextHour - 12 : nextHour;
+    return `${displayHour}:00 ${finalPeriod}`;
+  };
+
+  const handleTimeSlotClick = () => {
+    // For now, just log the action. This could be expanded to open a scheduling modal
+    console.log("Opening scheduling interface for:", getNextAvailableSlot());
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -53,6 +76,17 @@ const Dashboard = () => {
                 </div>
               </div>
             ))}
+            {/* Next Available Slot */}
+            <div 
+              onClick={handleTimeSlotClick}
+              className="flex items-center space-x-3 p-2 rounded-md bg-assistant-muted/50 cursor-pointer hover:bg-assistant-muted transition-colors"
+            >
+              <div className="w-2 h-2 rounded-full bg-green-500" />
+              <div>
+                <p className="font-medium text-gray-900">Available Slot</p>
+                <p className="text-sm text-gray-500">{getNextAvailableSlot()}</p>
+              </div>
+            </div>
           </div>
         </Card>
 
