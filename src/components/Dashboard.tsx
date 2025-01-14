@@ -102,12 +102,14 @@ const Dashboard = () => {
               </div>
             </div>
           </Card>
-          <Button 
-            variant="outline" 
-            className="w-full bg-white hover:bg-assistant-muted/50"
-          >
-            Do Something New
-          </Button>
+          <Link to="/calendar">
+            <Button 
+              variant="outline" 
+              className="w-full bg-white hover:bg-assistant-muted/50"
+            >
+              Do Something New
+            </Button>
+          </Link>
         </div>
 
         {/* Recent Contacts */}
@@ -141,12 +143,14 @@ const Dashboard = () => {
               ))}
             </div>
           </Card>
-          <Button 
-            variant="outline" 
-            className="w-full bg-white hover:bg-assistant-muted/50"
-          >
-            Meet Someone New
-          </Button>
+          <Link to="/contacts">
+            <Button 
+              variant="outline" 
+              className="w-full bg-white hover:bg-assistant-muted/50"
+            >
+              Meet Someone New
+            </Button>
+          </Link>
         </div>
       </div>
 
