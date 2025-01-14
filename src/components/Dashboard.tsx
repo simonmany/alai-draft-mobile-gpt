@@ -20,17 +20,17 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col items-center justify-center mb-8">
-        <Button size="lg" className="bg-assistant-primary hover:bg-assistant-primary/90 text-white">
-          Let's Plan Something!
-        </Button>
-      </div>
-
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Welcome Back!</h1>
         <button className="p-2 text-gray-400 hover:text-gray-500">
           <Bell className="h-6 w-6" />
         </button>
+      </div>
+
+      <div className="flex flex-col items-center justify-center mb-8">
+        <Button size="lg" className="bg-assistant-primary hover:bg-assistant-primary/90 text-white text-lg py-6 px-12">
+          Let's Plan Something!
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
