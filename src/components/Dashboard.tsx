@@ -9,8 +9,9 @@ const Dashboard = () => {
   ];
 
   const recentContacts = [
-    { id: 1, name: "Sarah Johnson", status: "Called yesterday" },
-    { id: 2, name: "Mike Peters", status: "Messaged 2 days ago" },
+    { id: 1, name: "Sarah Johnson", status: "Called yesterday", needsAttention: false },
+    { id: 2, name: "Mike Peters", status: "Messaged 2 days ago", needsAttention: false },
+    { id: 3, name: "David Chen", status: "Last contact: 3 weeks ago", needsAttention: true },
   ];
 
   const healthMetrics = [
@@ -37,12 +38,15 @@ const Dashboard = () => {
   };
 
   const handleTimeSlotClick = () => {
-    // For now, just log the action. This could be expanded to open a scheduling modal
     console.log("Opening scheduling interface for:", getNextAvailableSlot());
   };
 
   const handleEventClick = (event: typeof upcomingEvents[0]) => {
     console.log("Opening event details for:", event.title, "at", event.time);
+  };
+
+  const handleContactClick = (contact: typeof recentContacts[0]) => {
+    console.log("Opening contact details for:", contact.name);
   };
 
   return (
@@ -106,7 +110,15 @@ const Dashboard = () => {
           </div>
           <div className="space-y-4">
             {recentContacts.map((contact) => (
-              <div key={contact.id} className="flex items-center space-x-3">
+              <div 
+                key={contact.id} 
+                onClick={() => handleContactClick(contact)}
+                className={`flex items-center space-x-3 p-2 rounded-md cursor-pointer transition-colors ${
+                  contact.needsAttention 
+                    ? 'bg-assistant-muted/50 hover:bg-assistant-muted' 
+                    : 'hover:bg-assistant-muted/50'
+                }`}
+              >
                 <div className="h-8 w-8 rounded-full bg-assistant-muted flex items-center justify-center">
                   <span className="text-assistant-primary font-medium">
                     {contact.name.charAt(0)}
