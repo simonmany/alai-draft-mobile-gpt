@@ -2,6 +2,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar, Users, Activity, Bell, Plus } from "lucide-react";
 import { Link } from "react-router-dom";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const Dashboard = () => {
   const upcomingEvents = [
@@ -50,6 +51,45 @@ const Dashboard = () => {
     console.log("Opening contact details for:", contact.name);
   };
 
+  // New activity feed data
+  const activityFeed = [
+    { 
+      id: 1, 
+      user: "Sarah Johnson", 
+      action: "started a new workout routine",
+      time: "2 hours ago",
+      type: "fitness"
+    },
+    { 
+      id: 2, 
+      user: "Mike Peters", 
+      action: "completed their daily meditation",
+      time: "3 hours ago",
+      type: "wellness"
+    },
+    { 
+      id: 3, 
+      user: "David Chen", 
+      action: "achieved their step goal",
+      time: "5 hours ago",
+      type: "fitness"
+    },
+    { 
+      id: 4, 
+      user: "Emma Wilson", 
+      action: "logged 8 hours of sleep",
+      time: "8 hours ago",
+      type: "wellness"
+    },
+    { 
+      id: 5, 
+      user: "Alex Thompson", 
+      action: "completed a yoga session",
+      time: "10 hours ago",
+      type: "fitness"
+    }
+  ];
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -65,6 +105,43 @@ const Dashboard = () => {
           Let's Plan Something!
         </Button>
       </div>
+
+      {/* New Activity Feed Section */}
+      <Card className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-gray-900">Activity Feed</h2>
+          <div className="text-sm text-assistant-primary">Friends' Activities</div>
+        </div>
+        <ScrollArea className="h-48 w-full rounded-md">
+          <div className="space-y-4">
+            {activityFeed.map((activity) => (
+              <div 
+                key={activity.id}
+                className="flex items-start space-x-3 p-2 rounded-md hover:bg-assistant-muted/50 transition-colors"
+              >
+                <div className="h-8 w-8 rounded-full bg-assistant-muted flex items-center justify-center flex-shrink-0">
+                  <span className="text-assistant-primary font-medium">
+                    {activity.user.charAt(0)}
+                  </span>
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm">
+                    <span className="font-medium text-gray-900">{activity.user}</span>
+                    {" "}
+                    <span className="text-gray-600">{activity.action}</span>
+                  </p>
+                  <p className="text-xs text-gray-500">{activity.time}</p>
+                </div>
+                <div 
+                  className={`w-2 h-2 rounded-full mt-2 ${
+                    activity.type === 'fitness' ? 'bg-assistant-primary' : 'bg-assistant-secondary'
+                  }`} 
+                />
+              </div>
+            ))}
+          </div>
+        </ScrollArea>
+      </Card>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {/* Today's Schedule */}
