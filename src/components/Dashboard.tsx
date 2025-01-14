@@ -1,4 +1,5 @@
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Calendar, Users, Activity, Bell } from "lucide-react";
 
 const Dashboard = () => {
@@ -19,6 +20,12 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-6">
+      <div className="flex flex-col items-center justify-center mb-8">
+        <Button size="lg" className="bg-assistant-primary hover:bg-assistant-primary/90 text-white">
+          Let's Plan Something!
+        </Button>
+      </div>
+
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Welcome Back!</h1>
         <button className="p-2 text-gray-400 hover:text-gray-500">
