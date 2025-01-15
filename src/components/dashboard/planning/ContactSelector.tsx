@@ -28,9 +28,6 @@ const ContactSelector = ({
   personOpen,
   setPersonOpen,
 }: ContactSelectorProps) => {
-  // Ensure contacts is defined and has a default empty array if undefined
-  const contactsList = contacts || [];
-
   return (
     <Popover open={personOpen} onOpenChange={setPersonOpen}>
       <PopoverTrigger asChild>
@@ -44,12 +41,12 @@ const ContactSelector = ({
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full p-0">
+      <PopoverContent className="w-full p-0" align="start">
         <Command>
           <CommandInput placeholder="Search people..." />
           <CommandEmpty>No person found.</CommandEmpty>
           <CommandGroup>
-            {contactsList.map((contact) => (
+            {contacts.map((contact) => (
               <CommandItem
                 key={contact.id}
                 value={contact.name}
