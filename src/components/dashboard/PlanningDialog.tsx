@@ -53,12 +53,12 @@ const times = [
   "next week",
 ] as const;
 
-const people = [
-  "Sarah Johnson",
-  "Mike Peters",
-  "David Chen",
-  "Emma Wilson",
-  "Alex Thompson",
+const contacts = [
+  { id: 1, name: "Sarah Johnson" },
+  { id: 2, name: "Mike Peters" },
+  { id: 3, name: "David Chen" },
+  { id: 4, name: "Emma Wilson" },
+  { id: 5, name: "Alex Thompson" },
 ] as const;
 
 interface PlanningDialogProps {
@@ -84,11 +84,11 @@ const PlanningDialog = ({ initialPerson = "", initialTime = "", trigger }: Plann
   const handleSurpriseMe = () => {
     if (!activity || !person || !time) {
       const randomActivity = activities[Math.floor(Math.random() * activities.length)];
-      const randomPerson = people[Math.floor(Math.random() * people.length)];
+      const randomContact = contacts[Math.floor(Math.random() * contacts.length)];
       const randomTime = times[Math.floor(Math.random() * times.length)];
       
       setActivity(randomActivity);
-      setPerson(randomPerson);
+      setPerson(randomContact.name);
       setTime(randomTime);
     } else {
       handlePlan();
@@ -185,10 +185,10 @@ const PlanningDialog = ({ initialPerson = "", initialTime = "", trigger }: Plann
                   <CommandInput placeholder="Search people..." />
                   <CommandEmpty>No person found.</CommandEmpty>
                   <CommandGroup>
-                    {people.map((p) => (
+                    {contacts.map((contact) => (
                       <CommandItem
-                        key={p}
-                        value={p}
+                        key={contact.id}
+                        value={contact.name}
                         onSelect={(currentValue) => {
                           setPerson(currentValue);
                           setPersonOpen(false);
@@ -197,10 +197,10 @@ const PlanningDialog = ({ initialPerson = "", initialTime = "", trigger }: Plann
                         <Check
                           className={cn(
                             "mr-2 h-4 w-4",
-                            person === p ? "opacity-100" : "opacity-0"
+                            person === contact.name ? "opacity-100" : "opacity-0"
                           )}
                         />
-                        {p}
+                        {contact.name}
                       </CommandItem>
                     ))}
                   </CommandGroup>
