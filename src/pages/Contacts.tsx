@@ -1,4 +1,4 @@
-import ContactsOrbit from "@/components/ContactsOrbit";
+import React from 'react';
 import { Card } from "@/components/ui/card";
 import { Users, ChevronDown } from "lucide-react";
 import {
@@ -6,13 +6,21 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { toast } from "sonner";
+
+interface Contact {
+  id: number;
+  name: string;
+  imageUrl?: string;
+}
 
 interface ContactGroup {
   id: string;
   name: string;
   count: number;
   color: string;
-  members: { id: number; name: string }[];
+  members: Contact[];
 }
 
 const Contacts = () => {
@@ -23,9 +31,9 @@ const Contacts = () => {
       count: 5, 
       color: "#9b87f5",
       members: [
-        { id: 1, name: "Sarah Johnson" },
-        { id: 2, name: "Mike Peters" },
-        { id: 3, name: "Emma Wilson" },
+        { id: 1, name: "Sarah Johnson", imageUrl: "https://images.unsplash.com/photo-1649972904349-6e44c42644a7" },
+        { id: 2, name: "Mike Peters", imageUrl: "https://images.unsplash.com/photo-1581092795360-fd1ca04f0952" },
+        { id: 3, name: "Emma Wilson", imageUrl: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158" },
         { id: 4, name: "James Brown" },
         { id: 5, name: "Lisa Chen" },
       ]
@@ -82,6 +90,10 @@ const Contacts = () => {
     },
   ];
 
+  const handleContactClick = (contact: Contact) => {
+    toast(`Selected ${contact.name}`);
+  };
+
   return (
     <div className="space-y-6 pb-20">
       <div className="flex items-center justify-between">
@@ -118,14 +130,20 @@ const Contacts = () => {
                   </div>
                 </Card>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-[200px] bg-white">
+              <DropdownMenuContent align="start" className="w-[250px] bg-white">
                 <div className="py-2">
                   {group.members.map((member) => (
                     <div 
                       key={member.id} 
-                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm"
+                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center space-x-3"
+                      onClick={() => handleContactClick(member)}
                     >
-                      {member.name}
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback className="bg-assistant-muted text-sm">
+                          {member.name.split(' ').map(n => n[0]).join('')}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="text-sm">{member.name}</span>
                     </div>
                   ))}
                 </div>
