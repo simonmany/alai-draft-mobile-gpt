@@ -11,7 +11,7 @@ const Layout = () => {
     { name: "Calendar", href: "/calendar", icon: Calendar },
     { name: "Contacts", href: "/contacts", icon: Users },
     { name: "Activities", href: "/activities", icon: Dumbbell },
-    { name: "Health", href: "/health", icon: Activity },
+    { name: "Goals", href: "/goals", icon: Activity },
   ];
 
   return (
