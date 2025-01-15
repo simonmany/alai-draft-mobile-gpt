@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, Outlet } from "react-router-dom";
 import { Calendar, Users, Activity, LayoutDashboard, Dumbbell } from "lucide-react";
 
-const Layout = ({ children }: { children: React.ReactNode }) => {
+const Layout = () => {
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -74,7 +74,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
       {/* Main content */}
       <div className="md:pl-64">
         <main className="py-6 px-4 sm:px-6 md:px-8 pb-20 md:pb-6">
-          {children}
+          <Outlet />
         </main>
       </div>
     </div>
