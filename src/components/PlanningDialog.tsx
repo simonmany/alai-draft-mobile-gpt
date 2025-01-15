@@ -12,6 +12,7 @@ import {
   CommandEmpty,
   CommandGroup,
   CommandItem,
+  CommandList,
 } from "@/components/ui/command";
 import {
   Select,
@@ -61,18 +62,20 @@ const PlanningDialog = ({ isOpen, onClose, activities, contacts }: PlanningDialo
                 value={selectedActivity}
                 onValueChange={setSelectedActivity}
               />
-              <CommandEmpty>No activities found.</CommandEmpty>
-              <CommandGroup className="max-h-40 overflow-y-auto">
-                {activities.map((activity) => (
-                  <CommandItem
-                    key={activity.id}
-                    value={activity.name}
-                    onSelect={setSelectedActivity}
-                  >
-                    {activity.name}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
+              <CommandList>
+                <CommandEmpty>No activities found.</CommandEmpty>
+                <CommandGroup>
+                  {activities.map((activity) => (
+                    <CommandItem
+                      key={activity.id}
+                      value={activity.name}
+                      onSelect={setSelectedActivity}
+                    >
+                      {activity.name}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
             </CommandPrimitive>
           </div>
 
@@ -84,18 +87,20 @@ const PlanningDialog = ({ isOpen, onClose, activities, contacts }: PlanningDialo
                 value={selectedContact}
                 onValueChange={setSelectedContact}
               />
-              <CommandEmpty>No contacts found.</CommandEmpty>
-              <CommandGroup className="max-h-40 overflow-y-auto">
-                {contacts.map((contact) => (
-                  <CommandItem
-                    key={contact.id}
-                    value={contact.name}
-                    onSelect={setSelectedContact}
-                  >
-                    {contact.name}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
+              <CommandList>
+                <CommandEmpty>No contacts found.</CommandEmpty>
+                <CommandGroup>
+                  {contacts.map((contact) => (
+                    <CommandItem
+                      key={contact.id}
+                      value={contact.name}
+                      onSelect={setSelectedContact}
+                    >
+                      {contact.name}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
             </CommandPrimitive>
           </div>
 
