@@ -41,7 +41,7 @@ const ContactSelector = ({
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full p-0" align="start">
+      <PopoverContent className="w-full p-0">
         <Command>
           <CommandInput placeholder="Search people..." />
           <CommandEmpty>No person found.</CommandEmpty>
@@ -51,7 +51,7 @@ const ContactSelector = ({
                 key={contact.id}
                 value={contact.name}
                 onSelect={(currentValue) => {
-                  setPerson(currentValue);
+                  setPerson(currentValue === person ? "" : currentValue);
                   setPersonOpen(false);
                 }}
               >
