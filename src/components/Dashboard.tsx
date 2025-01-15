@@ -5,6 +5,7 @@ import ActivityFeed from "./dashboard/ActivityFeed";
 import ScheduleSection from "./dashboard/ScheduleSection";
 import ContactsSection from "./dashboard/ContactsSection";
 import HealthSection from "./dashboard/HealthSection";
+import PlanningDialog from "./dashboard/PlanningDialog";
 
 const Dashboard = () => {
   const upcomingEvents = [
@@ -83,10 +84,7 @@ const Dashboard = () => {
       </div>
 
       <div className="w-full">
-        <Button size="lg" className="bg-assistant-primary hover:bg-assistant-primary/90 text-white text-lg py-6 w-full">
-          <Plus className="mr-2" />
-          Let's Plan Something!
-        </Button>
+        <PlanningDialog />
       </div>
 
       <Card className="p-6">
