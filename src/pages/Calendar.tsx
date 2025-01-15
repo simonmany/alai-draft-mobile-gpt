@@ -6,7 +6,8 @@ import { upcomingEvents } from "@/data/dashboardData";
 import type { Event } from "@/data/dashboardData";
 
 const CalendarPage = () => {
-  const [date, setDate] = useState<Date>(new Date(2024, 3, 13)); // April 13, 2024 (Monday)
+  const today = new Date();
+  const [date, setDate] = useState<Date>(today);
 
   // Generate hours for the day view
   const hours = Array.from({ length: 24 }, (_, i) => {
@@ -38,11 +39,16 @@ const CalendarPage = () => {
 
   // Helper function to check if an event occurs on a given day
   const getEventsForDay = (day: Date) => {
-    return upcomingEvents.filter(() => isSameDay(day, date));
+    return upcomingEvents;
   };
 
   return (
     <div className="container mx-auto p-4 space-y-8">
+      {/* Current Date Display */}
+      <h1 className="text-2xl font-bold text-gray-900">
+        {format(date, 'EEEE, MMMM d, yyyy')}
+      </h1>
+
       {/* Day View */}
       <div>
         <h2 className="text-2xl font-semibold mb-4">Day View</h2>
