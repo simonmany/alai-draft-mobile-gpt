@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { toast } from "sonner";
+import { useNavigate } from 'react-router-dom';
 
 interface Contact {
   id: number;
@@ -25,6 +26,12 @@ interface ContactGroup {
 }
 
 const Contacts = () => {
+  const navigate = useNavigate();
+  
+  const handleContactClick = (contact: Contact) => {
+    navigate(`/contacts/${contact.id}`, { state: contact });
+  };
+
   const contactGroups: ContactGroup[] = [
     { 
       id: "inner", 
@@ -90,10 +97,6 @@ const Contacts = () => {
       ]
     },
   ];
-
-  const handleContactClick = (contact: Contact) => {
-    toast(`Selected ${contact.name}`);
-  };
 
   return (
     <div className="space-y-6 pb-20">
