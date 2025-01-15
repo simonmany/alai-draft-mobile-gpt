@@ -5,8 +5,12 @@ import ActivityFeed from "./dashboard/ActivityFeed";
 import ScheduleSection from "./dashboard/ScheduleSection";
 import ContactsSection from "./dashboard/ContactsSection";
 import HealthSection from "./dashboard/HealthSection";
+import PlanningDialog from "./PlanningDialog";
+import { useState } from "react";
 
 const Dashboard = () => {
+  const [isPlanningOpen, setIsPlanningOpen] = useState(false);
+
   const upcomingEvents = [
     { id: 1, title: "Team Meeting", time: "10:00 AM", type: "work" as const },
     { id: 2, title: "Lunch with Sarah", time: "12:30 PM", type: "social" as const },
@@ -61,6 +65,24 @@ const Dashboard = () => {
     }
   ];
 
+  const activities = [
+    { id: 1, name: "Golf" },
+    { id: 2, name: "Basketball" },
+    { id: 3, name: "Soccer" },
+    { id: 4, name: "Sushi" },
+    { id: 5, name: "Pizza" },
+    { id: 6, name: "Tacos" },
+    { id: 7, name: "Dive Bar" },
+    { id: 8, name: "Cocktail Bar" },
+    { id: 9, name: "Beer Garden" },
+    { id: 10, name: "Pottery" },
+    { id: 11, name: "Workout" },
+    { id: 12, name: "Boxing" },
+    { id: 13, name: "Comedy Show" },
+    { id: 14, name: "Jazz Club" },
+    { id: 15, name: "Broadway" },
+  ];
+
   const handleTimeSlotClick = () => {
     console.log("Opening scheduling interface");
   };
@@ -74,7 +96,7 @@ const Dashboard = () => {
   };
 
   const handlePlanClick = () => {
-    console.log("Opening planning interface");
+    setIsPlanningOpen(true);
   };
 
   return (
@@ -93,6 +115,13 @@ const Dashboard = () => {
       >
         <Plus className="w-5 h-5" /> Let's Plan Something
       </Button>
+
+      <PlanningDialog
+        isOpen={isPlanningOpen}
+        onClose={() => setIsPlanningOpen(false)}
+        activities={activities}
+        contacts={recentContacts}
+      />
 
       <Card className="p-6">
         <div className="flex items-center justify-between mb-4">
