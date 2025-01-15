@@ -1,11 +1,9 @@
-import { Bell, Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Bell } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import ActivityFeed from "./dashboard/ActivityFeed";
 import ScheduleSection from "./dashboard/ScheduleSection";
 import ContactsSection from "./dashboard/ContactsSection";
 import HealthSection from "./dashboard/HealthSection";
-import PlanningDialog from "./dashboard/PlanningDialog";
 
 const Dashboard = () => {
   const upcomingEvents = [
@@ -81,10 +79,6 @@ const Dashboard = () => {
         <button className="p-2 text-gray-400 hover:text-gray-500">
           <Bell className="h-6 w-6" />
         </button>
-      </div>
-
-      <div className="w-full">
-        <PlanningDialog />
       </div>
 
       <Card className="p-6">
