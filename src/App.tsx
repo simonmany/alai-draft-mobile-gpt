@@ -6,6 +6,7 @@ import Layout from "./components/Layout";
 import Index from "./pages/Index";
 import Contacts from "./pages/Contacts";
 import Activities from "./pages/Activities";
+import Calendar from "./pages/Calendar";
 import ChatBubble from "./components/ChatBubble";
 
 const App = () => {
@@ -15,7 +16,7 @@ const App = () => {
         <Layout>
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/calendar" element={<div>Calendar Coming Soon</div>} />
+            <Route path="/calendar" element={<Calendar />} />
             <Route path="/contacts" element={<Contacts />} />
             <Route path="/activities" element={<Activities />} />
             <Route path="/goals" element={<div>Goals Coming Soon</div>} />
