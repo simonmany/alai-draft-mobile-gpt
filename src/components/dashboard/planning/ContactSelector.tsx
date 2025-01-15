@@ -28,6 +28,9 @@ const ContactSelector = ({
   personOpen,
   setPersonOpen,
 }: ContactSelectorProps) => {
+  // Ensure contacts is defined and has a default empty array if undefined
+  const contactsList = contacts || [];
+
   return (
     <Popover open={personOpen} onOpenChange={setPersonOpen}>
       <PopoverTrigger asChild>
@@ -46,7 +49,7 @@ const ContactSelector = ({
           <CommandInput placeholder="Search people..." />
           <CommandEmpty>No person found.</CommandEmpty>
           <CommandGroup>
-            {contacts.map((contact) => (
+            {contactsList.map((contact) => (
               <CommandItem
                 key={contact.id}
                 value={contact.name}
