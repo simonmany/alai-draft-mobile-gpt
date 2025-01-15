@@ -43,10 +43,16 @@ const people = [
   "Alex Thompson",
 ];
 
-const PlanningDialog = () => {
+interface PlanningDialogProps {
+  initialPerson?: string;
+  initialTime?: string;
+  trigger?: React.ReactNode;
+}
+
+const PlanningDialog = ({ initialPerson = "", initialTime = "", trigger }: PlanningDialogProps) => {
   const [activity, setActivity] = useState<string>("");
-  const [person, setPerson] = useState<string>("");
-  const [time, setTime] = useState<string>("");
+  const [person, setPerson] = useState<string>(initialPerson);
+  const [time, setTime] = useState<string>(initialTime);
   const [open, setOpen] = useState(false);
   const { toast } = useToast();
 
@@ -67,17 +73,19 @@ const PlanningDialog = () => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="lg" className="bg-assistant-primary hover:bg-assistant-primary/90 text-white text-lg py-6 w-full">
-          <Plus className="mr-2" />
-          Let's Plan Something!
-        </Button>
+        {trigger || (
+          <Button size="lg" className="bg-assistant-primary hover:bg-assistant-primary/90 text-white text-lg py-6 w-full">
+            <Plus className="mr-2" />
+            Let's Plan Something!
+          </Button>
+        )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>Plan Something</DialogTitle>
         </DialogHeader>
         <div className="flex flex-col space-y-6 pt-4">
-          <div className="flex items-center space-x-2 text-lg">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-2 text-lg">
             <span>I want to</span>
             <Select value={activity} onValueChange={setActivity}>
               <SelectTrigger className="w-[200px]">

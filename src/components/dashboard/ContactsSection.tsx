@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Users } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import PlanningDialog from "./PlanningDialog";
 
 type Contact = {
   id: number;
@@ -15,7 +16,7 @@ interface ContactsSectionProps {
   onContactClick: (contact: Contact) => void;
 }
 
-const ContactsSection = ({ contacts, onContactClick }: ContactsSectionProps) => {
+const ContactsSection = ({ contacts }: ContactsSectionProps) => {
   return (
     <div className="space-y-4">
       <Card className="p-6">
@@ -27,36 +28,42 @@ const ContactsSection = ({ contacts, onContactClick }: ContactsSectionProps) => 
         </div>
         <div className="space-y-4">
           {contacts.map((contact) => (
-            <div 
-              key={contact.id} 
-              onClick={() => onContactClick(contact)}
-              className={`flex items-center space-x-3 p-2 rounded-md cursor-pointer transition-colors ${
-                contact.needsAttention 
-                  ? 'bg-assistant-muted/50 hover:bg-assistant-muted' 
-                  : 'hover:bg-assistant-muted/50'
-              }`}
-            >
-              <div className="h-8 w-8 rounded-full bg-assistant-muted flex items-center justify-center">
-                <span className="text-assistant-primary font-medium">
-                  {contact.name.charAt(0)}
-                </span>
-              </div>
-              <div>
-                <p className="font-medium text-gray-900">{contact.name}</p>
-                <p className="text-sm text-gray-500">{contact.status}</p>
-              </div>
-            </div>
+            <PlanningDialog
+              key={contact.id}
+              initialPerson={contact.name}
+              trigger={
+                <div 
+                  className={`flex items-center space-x-3 p-2 rounded-md cursor-pointer transition-colors ${
+                    contact.needsAttention 
+                      ? 'bg-assistant-muted/50 hover:bg-assistant-muted' 
+                      : 'hover:bg-assistant-muted/50'
+                  }`}
+                >
+                  <div className="h-8 w-8 rounded-full bg-assistant-muted flex items-center justify-center">
+                    <span className="text-assistant-primary font-medium">
+                      {contact.name.charAt(0)}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">{contact.name}</p>
+                    <p className="text-sm text-gray-500">{contact.status}</p>
+                  </div>
+                </div>
+              }
+            />
           ))}
         </div>
       </Card>
-      <Link to="/contacts">
-        <Button 
-          variant="outline" 
-          className="w-full bg-white hover:bg-assistant-muted/50"
-        >
-          Meet Someone New
-        </Button>
-      </Link>
+      <PlanningDialog
+        trigger={
+          <Button 
+            variant="outline" 
+            className="w-full bg-white hover:bg-assistant-muted/50"
+          >
+            Meet Someone New
+          </Button>
+        }
+      />
     </div>
   );
 };

@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Calendar } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import PlanningDialog from "./PlanningDialog";
 
 type Event = {
   id: number;
@@ -16,7 +17,7 @@ interface ScheduleSectionProps {
   onTimeSlotClick: () => void;
 }
 
-const ScheduleSection = ({ events, onEventClick, onTimeSlotClick }: ScheduleSectionProps) => {
+const ScheduleSection = ({ events, onEventClick }: ScheduleSectionProps) => {
   const getNextAvailableSlot = () => {
     if (events.length === 0) return "9:00 AM";
     const lastEvent = events[events.length - 1];
@@ -58,26 +59,30 @@ const ScheduleSection = ({ events, onEventClick, onTimeSlotClick }: ScheduleSect
               </div>
             </div>
           ))}
-          <div 
-            onClick={onTimeSlotClick}
-            className="flex items-center space-x-3 p-2 rounded-md bg-assistant-muted/50 cursor-pointer hover:bg-assistant-muted transition-colors"
-          >
-            <div className="w-2 h-2 rounded-full bg-green-500" />
-            <div>
-              <p className="font-medium text-gray-900">Available Slot</p>
-              <p className="text-sm text-gray-500">{getNextAvailableSlot()}</p>
-            </div>
-          </div>
+          <PlanningDialog 
+            initialTime="morning"
+            trigger={
+              <div className="flex items-center space-x-3 p-2 rounded-md bg-assistant-muted/50 cursor-pointer hover:bg-assistant-muted transition-colors">
+                <div className="w-2 h-2 rounded-full bg-green-500" />
+                <div>
+                  <p className="font-medium text-gray-900">Available Slot</p>
+                  <p className="text-sm text-gray-500">{getNextAvailableSlot()}</p>
+                </div>
+              </div>
+            }
+          />
         </div>
       </Card>
-      <Link to="/calendar">
-        <Button 
-          variant="outline" 
-          className="w-full bg-white hover:bg-assistant-muted/50"
-        >
-          Do Something New
-        </Button>
-      </Link>
+      <PlanningDialog
+        trigger={
+          <Button 
+            variant="outline" 
+            className="w-full bg-white hover:bg-assistant-muted/50"
+          >
+            Do Something New
+          </Button>
+        }
+      />
     </div>
   );
 };
