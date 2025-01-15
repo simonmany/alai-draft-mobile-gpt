@@ -1,5 +1,6 @@
-import { Bell } from "lucide-react";
+import { Bell, Plus } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import ActivityFeed from "./dashboard/ActivityFeed";
 import ScheduleSection from "./dashboard/ScheduleSection";
 import ContactsSection from "./dashboard/ContactsSection";
@@ -72,6 +73,10 @@ const Dashboard = () => {
     console.log("Opening contact details for:", contact.name);
   };
 
+  const handlePlanClick = () => {
+    console.log("Opening planning interface");
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -80,6 +85,14 @@ const Dashboard = () => {
           <Bell className="h-6 w-6" />
         </button>
       </div>
+
+      <Button 
+        onClick={handlePlanClick}
+        size="lg"
+        className="w-full text-lg font-semibold"
+      >
+        <Plus className="w-5 h-5" /> Let's Plan Something
+      </Button>
 
       <Card className="p-6">
         <div className="flex items-center justify-between mb-4">
