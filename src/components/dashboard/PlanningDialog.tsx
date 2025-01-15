@@ -13,6 +13,7 @@ import { useToast } from "@/components/ui/use-toast";
 import ActivitySelector from "./planning/ActivitySelector";
 import ContactSelector from "./planning/ContactSelector";
 import TimeSelector from "./planning/TimeSelector";
+import { activities, contacts, times } from "./planning/constants";
 
 interface PlanningDialogProps {
   initialPerson?: string;
