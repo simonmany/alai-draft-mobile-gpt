@@ -46,25 +46,27 @@ const CalendarPage = () => {
             <div className="flex">
               {hours.map((hour, index) => (
                 <div key={hour} className="flex-1 relative group">
-                  <div className="text-sm text-gray-500 absolute -top-6 left-0">{hour}</div>
+                  <div className="text-sm text-gray-500 absolute -top-6 left-0 w-full text-left truncate px-2">
+                    {hour}
+                  </div>
                   <div className="h-20 border-l border-gray-200">
                     {upcomingEvents.map((event) => (
                       getEventHourIndex(event.time) === index && (
                         <div
                           key={event.id}
-                          className={`absolute top-0 left-0 w-full p-2 rounded-md cursor-pointer ${
+                          className={`absolute top-0 left-0 w-full p-2 rounded-md cursor-pointer overflow-hidden ${
                             event.type === 'work' ? 'bg-assistant-primary/20' : 'bg-assistant-secondary/20'
                           }`}
                         >
-                          <p className="text-sm font-medium">{event.title}</p>
-                          <p className="text-xs text-gray-500">{event.time}</p>
+                          <p className="text-sm font-medium truncate">{event.title}</p>
+                          <p className="text-xs text-gray-500 truncate">{event.time}</p>
                         </div>
                       )
                     ))}
                     {availableSlots[index] && (
                       <div className="absolute top-0 left-0 w-full h-full bg-green-50 opacity-0 group-hover:opacity-100 transition-opacity">
                         <div className="p-2">
-                          <p className="text-sm font-medium text-green-600">Available</p>
+                          <p className="text-sm font-medium text-green-600 truncate">Available</p>
                         </div>
                       </div>
                     )}
