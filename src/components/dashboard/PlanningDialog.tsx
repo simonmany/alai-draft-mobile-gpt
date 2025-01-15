@@ -139,7 +139,7 @@ const PlanningDialog = ({ initialPerson = "", initialTime = "", trigger }: Plann
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-full p-0">
+              <PopoverContent className="w-full p-0" align="start">
                 <Command>
                   <CommandInput placeholder="Search activities..." />
                   <CommandEmpty>No activity found.</CommandEmpty>
@@ -180,7 +180,7 @@ const PlanningDialog = ({ initialPerson = "", initialTime = "", trigger }: Plann
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-full p-0">
+              <PopoverContent className="w-full p-0" align="start">
                 <Command>
                   <CommandInput placeholder="Search people..." />
                   <CommandEmpty>No person found.</CommandEmpty>
@@ -223,8 +223,10 @@ const PlanningDialog = ({ initialPerson = "", initialTime = "", trigger }: Plann
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-full p-0">
+              <PopoverContent className="w-full p-0" align="start">
                 <Command>
+                  <CommandInput placeholder="Search time..." />
+                  <CommandEmpty>No time found.</CommandEmpty>
                   <CommandGroup>
                     {times.map((t) => (
                       <CommandItem
