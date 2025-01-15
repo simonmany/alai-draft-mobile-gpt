@@ -2,6 +2,8 @@ import { useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Calendar } from "@/components/ui/calendar";
 import { addHours, format, startOfToday, startOfWeek, endOfWeek, eachDayOfInterval } from "date-fns";
+import { upcomingEvents } from "@/data/dashboardData";
+import type { Event } from "@/data/dashboardData";
 
 const CalendarPage = () => {
   const [date, setDate] = useState<Date>(new Date());
@@ -18,6 +20,22 @@ const CalendarPage = () => {
     end: endOfWeek(date)
   });
 
+  // Convert event times to hour indices for positioning
+  const getEventHourIndex = (timeStr: string) => {
+    const [time, period] = timeStr.split(" ");
+    const [hourStr] = time.split(":");
+    let hour = parseInt(hourStr);
+    if (period === "PM" && hour !== 12) hour += 12;
+    if (period === "AM" && hour === 12) hour = 0;
+    return hour;
+  };
+
+  // Find available slots (excluding event times)
+  const occupiedHours = upcomingEvents.map(event => getEventHourIndex(event.time));
+  const availableSlots = hours.map((_, index) => {
+    return !occupiedHours.includes(index);
+  });
+
   return (
     <div className="container mx-auto p-4 space-y-8">
       {/* Day View */}
@@ -30,8 +48,25 @@ const CalendarPage = () => {
                 <div key={hour} className="flex-1 relative group">
                   <div className="text-sm text-gray-500 absolute -top-6 left-0">{hour}</div>
                   <div className="h-20 border-l border-gray-200">
-                    {index === 0 && (
-                      <div className="absolute top-0 left-0 w-full h-full bg-blue-50 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    {upcomingEvents.map((event) => (
+                      getEventHourIndex(event.time) === index && (
+                        <div
+                          key={event.id}
+                          className={`absolute top-0 left-0 w-full p-2 rounded-md cursor-pointer ${
+                            event.type === 'work' ? 'bg-assistant-primary/20' : 'bg-assistant-secondary/20'
+                          }`}
+                        >
+                          <p className="text-sm font-medium">{event.title}</p>
+                          <p className="text-xs text-gray-500">{event.time}</p>
+                        </div>
+                      )
+                    ))}
+                    {availableSlots[index] && (
+                      <div className="absolute top-0 left-0 w-full h-full bg-green-50 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="p-2">
+                          <p className="text-sm font-medium text-green-600">Available</p>
+                        </div>
+                      </div>
                     )}
                   </div>
                 </div>
