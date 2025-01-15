@@ -1,6 +1,7 @@
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -30,7 +31,7 @@ const activities = [
   "exercise",
   "meet",
   "catch up",
-];
+] as const;
 
 const generateTimeSlots = () => {
   const slots = [];
@@ -50,7 +51,7 @@ const times = [
   "tomorrow",
   "this weekend",
   "next week",
-];
+] as const;
 
 const people = [
   "Sarah Johnson",
@@ -58,7 +59,7 @@ const people = [
   "David Chen",
   "Emma Wilson",
   "Alex Thompson",
-];
+] as const;
 
 interface PlanningDialogProps {
   initialPerson?: string;
@@ -121,6 +122,7 @@ const PlanningDialog = ({ initialPerson = "", initialTime = "", trigger }: Plann
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>Plan Something</DialogTitle>
+          <DialogDescription>Create a new plan with your friends</DialogDescription>
         </DialogHeader>
         <div className="flex flex-col space-y-6 pt-4">
           <div className="flex flex-col space-y-4 text-lg">
