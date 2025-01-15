@@ -6,16 +6,22 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Check, ChevronsUpDown } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
+import { cn } from "@/lib/utils";
 
 const activities = [
   "have coffee",
@@ -26,10 +32,21 @@ const activities = [
   "catch up",
 ];
 
+const generateTimeSlots = () => {
+  const slots = [];
+  for (let hour = 9; hour <= 17; hour++) {
+    for (let minute of [0, 30]) {
+      const period = hour >= 12 ? 'PM' : 'AM';
+      const displayHour = hour > 12 ? hour - 12 : hour;
+      slots.push(`${displayHour}:${minute === 0 ? '00' : '30'} ${period}`);
+    }
+  }
+  return slots;
+};
+
 const times = [
-  "morning",
-  "afternoon",
-  "evening",
+  "next available slot",
+  ...generateTimeSlots(),
   "tomorrow",
   "this weekend",
   "next week",
@@ -54,20 +71,41 @@ const PlanningDialog = ({ initialPerson = "", initialTime = "", trigger }: Plann
   const [person, setPerson] = useState<string>(initialPerson);
   const [time, setTime] = useState<string>(initialTime);
   const [open, setOpen] = useState(false);
+  const [activityOpen, setActivityOpen] = useState(false);
+  const [personOpen, setPersonOpen] = useState(false);
+  const [timeOpen, setTimeOpen] = useState(false);
   const { toast } = useToast();
 
-  const handlePlan = () => {
-    if (activity && person && time) {
-      toast({
-        title: "Plan Created!",
-        description: `You're going to ${activity} with ${person} ${time}.`,
-      });
-      setOpen(false);
-      // Reset selections
-      setActivity("");
-      setPerson("");
-      setTime("");
+  const getNextAvailableSlot = () => {
+    return "2:30 PM"; // This would normally be calculated based on actual schedule
+  };
+
+  const handleSurpriseMe = () => {
+    if (!activity || !person || !time) {
+      const randomActivity = activities[Math.floor(Math.random() * activities.length)];
+      const randomPerson = people[Math.floor(Math.random() * people.length)];
+      const randomTime = times[Math.floor(Math.random() * times.length)];
+      
+      setActivity(randomActivity);
+      setPerson(randomPerson);
+      setTime(randomTime);
+    } else {
+      handlePlan();
     }
+  };
+
+  const handlePlan = () => {
+    const displayTime = time === "next available slot" ? getNextAvailableSlot() : time;
+    
+    toast({
+      title: "Plan Created!",
+      description: `You're going to ${activity} with ${person} ${displayTime}.`,
+    });
+    setOpen(false);
+    // Reset selections
+    setActivity("");
+    setPerson("");
+    setTime("");
   };
 
   return (
@@ -85,55 +123,137 @@ const PlanningDialog = ({ initialPerson = "", initialTime = "", trigger }: Plann
           <DialogTitle>Plan Something</DialogTitle>
         </DialogHeader>
         <div className="flex flex-col space-y-6 pt-4">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-2 text-lg">
+          <div className="flex flex-col space-y-4 text-lg">
             <span>I want to</span>
-            <Select value={activity} onValueChange={setActivity}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Select activity" />
-              </SelectTrigger>
-              <SelectContent>
-                {activities.map((act) => (
-                  <SelectItem key={act} value={act}>
-                    {act}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Popover open={activityOpen} onOpenChange={setActivityOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={activityOpen}
+                  className="w-full justify-between"
+                >
+                  {activity ? activity : "Select activity..."}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-full p-0">
+                <Command>
+                  <CommandInput placeholder="Search activities..." />
+                  <CommandEmpty>No activity found.</CommandEmpty>
+                  <CommandGroup>
+                    {activities.map((act) => (
+                      <CommandItem
+                        key={act}
+                        value={act}
+                        onSelect={(currentValue) => {
+                          setActivity(currentValue);
+                          setActivityOpen(false);
+                        }}
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            activity === act ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        {act}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </Command>
+              </PopoverContent>
+            </Popover>
+
             <span>with</span>
-            <Select value={person} onValueChange={setPerson}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Select person" />
-              </SelectTrigger>
-              <SelectContent>
-                {people.map((p) => (
-                  <SelectItem key={p} value={p}>
-                    {p}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex items-center space-x-2 text-lg">
+            <Popover open={personOpen} onOpenChange={setPersonOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={personOpen}
+                  className="w-full justify-between"
+                >
+                  {person ? person : "Select person..."}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-full p-0">
+                <Command>
+                  <CommandInput placeholder="Search people..." />
+                  <CommandEmpty>No person found.</CommandEmpty>
+                  <CommandGroup>
+                    {people.map((p) => (
+                      <CommandItem
+                        key={p}
+                        value={p}
+                        onSelect={(currentValue) => {
+                          setPerson(currentValue);
+                          setPersonOpen(false);
+                        }}
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            person === p ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        {p}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </Command>
+              </PopoverContent>
+            </Popover>
+
             <span>at</span>
-            <Select value={time} onValueChange={setTime}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Select time" />
-              </SelectTrigger>
-              <SelectContent>
-                {times.map((t) => (
-                  <SelectItem key={t} value={t}>
-                    {t}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Popover open={timeOpen} onOpenChange={setTimeOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={timeOpen}
+                  className="w-full justify-between"
+                >
+                  {time === "next available slot" 
+                    ? `next available slot (${getNextAvailableSlot()})` 
+                    : time || "Select time..."}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-full p-0">
+                <Command>
+                  <CommandGroup>
+                    {times.map((t) => (
+                      <CommandItem
+                        key={t}
+                        value={t}
+                        onSelect={(currentValue) => {
+                          setTime(currentValue);
+                          setTimeOpen(false);
+                        }}
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            time === t ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        {t === "next available slot" 
+                          ? `${t} (${getNextAvailableSlot()})` 
+                          : t}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </Command>
+              </PopoverContent>
+            </Popover>
           </div>
           <Button 
-            onClick={handlePlan}
-            disabled={!activity || !person || !time}
+            onClick={handleSurpriseMe}
             className="w-full mt-4"
           >
-            Create Plan
+            {(!activity || !person || !time) ? "Surprise Me!" : "Create Plan"}
           </Button>
         </div>
       </DialogContent>
