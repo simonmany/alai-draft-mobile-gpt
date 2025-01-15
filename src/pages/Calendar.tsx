@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Calendar } from "@/components/ui/calendar";
-import { addHours, format, startOfToday, startOfWeek, endOfWeek, eachDayOfInterval } from "date-fns";
+import { addHours, format, startOfToday, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay } from "date-fns";
 import { upcomingEvents } from "@/data/dashboardData";
 import type { Event } from "@/data/dashboardData";
 
 const CalendarPage = () => {
-  const [date, setDate] = useState<Date>(new Date());
+  const [date, setDate] = useState<Date>(new Date(2024, 3, 13)); // April 13, 2024 (Monday)
 
   // Generate hours for the day view
   const hours = Array.from({ length: 24 }, (_, i) => {
@@ -35,6 +35,11 @@ const CalendarPage = () => {
   const availableSlots = hours.map((_, index) => {
     return !occupiedHours.includes(index);
   });
+
+  // Helper function to check if an event occurs on a given day
+  const getEventsForDay = (day: Date) => {
+    return upcomingEvents.filter(() => isSameDay(day, date));
+  };
 
   return (
     <div className="container mx-auto p-4 space-y-8">
@@ -92,17 +97,31 @@ const CalendarPage = () => {
                 </div>
               ))}
               {hours.map((hour) => (
-                <>
-                  <div key={hour} className="text-sm text-gray-500">
+                <React.Fragment key={hour}>
+                  <div className="text-sm text-gray-500">
                     {hour}
                   </div>
                   {weekDays.map((day) => (
                     <div
                       key={`${day}-${hour}`}
-                      className="border-t border-gray-200 min-h-[60px]"
-                    ></div>
+                      className="border-t border-gray-200 min-h-[60px] relative"
+                    >
+                      {getEventsForDay(day).map((event) => (
+                        getEventHourIndex(event.time) === hours.indexOf(hour) && (
+                          <div
+                            key={event.id}
+                            className={`absolute top-0 left-0 right-0 p-2 m-1 rounded-md cursor-pointer overflow-hidden ${
+                              event.type === 'work' ? 'bg-assistant-primary/20' : 'bg-assistant-secondary/20'
+                            }`}
+                          >
+                            <p className="text-sm font-medium truncate">{event.title}</p>
+                            <p className="text-xs text-gray-500 truncate">{event.time}</p>
+                          </div>
+                        )
+                      ))}
+                    </div>
                   ))}
-                </>
+                </React.Fragment>
               ))}
             </div>
           </div>
@@ -112,12 +131,38 @@ const CalendarPage = () => {
       {/* Month View */}
       <div>
         <h2 className="text-2xl font-semibold mb-4">Month View</h2>
-        <div className="rounded-md border">
+        <div className="rounded-md border w-full">
           <Calendar
             mode="single"
             selected={date}
             onSelect={(newDate) => newDate && setDate(newDate)}
-            className="rounded-md"
+            className="rounded-md w-full"
+            components={{
+              Day: ({ date: dayDate, ...props }) => {
+                const dayEvents = getEventsForDay(dayDate);
+                return (
+                  <div className="relative w-full h-full min-h-[100px] p-1">
+                    <button {...props} className="w-full h-full">
+                      <time dateTime={dayDate.toISOString()} className="absolute top-1 left-1">
+                        {format(dayDate, 'd')}
+                      </time>
+                      <div className="mt-6 space-y-1">
+                        {dayEvents.map((event) => (
+                          <div
+                            key={event.id}
+                            className={`text-xs p-1 rounded-sm truncate ${
+                              event.type === 'work' ? 'bg-assistant-primary/20' : 'bg-assistant-secondary/20'
+                            }`}
+                          >
+                            {event.title}
+                          </div>
+                        ))}
+                      </div>
+                    </button>
+                  </div>
+                );
+              }
+            }}
           />
         </div>
       </div>
