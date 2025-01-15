@@ -8,23 +8,25 @@ import Contacts from "./pages/Contacts";
 import Activities from "./pages/Activities";
 import ChatBubble from "./components/ChatBubble";
 
-const App = () => (
-  <TooltipProvider>
-    <Toaster />
-    <Sonner />
+const App = () => {
+  return (
     <BrowserRouter>
-      <Layout>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/calendar" element={<div>Calendar Coming Soon</div>} />
-          <Route path="/contacts" element={<Contacts />} />
-          <Route path="/activities" element={<Activities />} />
-          <Route path="/health" element={<div>Health Coming Soon</div>} />
-        </Routes>
-      </Layout>
-      <ChatBubble />
+      <TooltipProvider>
+        <Layout>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/calendar" element={<div>Calendar Coming Soon</div>} />
+            <Route path="/contacts" element={<Contacts />} />
+            <Route path="/activities" element={<Activities />} />
+            <Route path="/health" element={<div>Health Coming Soon</div>} />
+          </Routes>
+        </Layout>
+        <ChatBubble />
+        <Toaster />
+        <Sonner />
+      </TooltipProvider>
     </BrowserRouter>
-  </TooltipProvider>
-);
+  );
+};
 
 export default App;
