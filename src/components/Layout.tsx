@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Calendar, Users, Activity, LayoutDashboard } from "lucide-react";
+import { Calendar, Users, Activity, LayoutDashboard, Dumbbell } from "lucide-react";
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
@@ -10,6 +10,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     { name: "Dashboard", href: "/", icon: LayoutDashboard },
     { name: "Calendar", href: "/calendar", icon: Calendar },
     { name: "Contacts", href: "/contacts", icon: Users },
+    { name: "Activities", href: "/activities", icon: Dumbbell },
     { name: "Health", href: "/health", icon: Activity },
   ];
 
