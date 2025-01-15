@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import ActivityFeed from "./dashboard/ActivityFeed";
 import ScheduleSection from "./dashboard/ScheduleSection";
 import ContactsSection from "./dashboard/ContactsSection";
-import HealthSection from "./dashboard/HealthSection";
+import GoalsSection from "./dashboard/GoalsSection";
 import PlanningDialog from "./PlanningDialog";
 import { useState } from "react";
 
@@ -99,6 +99,27 @@ const Dashboard = () => {
     setIsPlanningOpen(true);
   };
 
+  const goals = [
+    { 
+      id: 1, 
+      name: "Reconnect with college friends", 
+      progress: 30,
+      status: "2 friends contacted"
+    },
+    { 
+      id: 2, 
+      name: "Meet new friends", 
+      progress: 60,
+      status: "3 new connections"
+    },
+    { 
+      id: 3, 
+      name: "Take a boxing class", 
+      progress: 10,
+      status: "Research phase"
+    }
+  ];
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -143,7 +164,7 @@ const Dashboard = () => {
         />
       </div>
 
-      <HealthSection metrics={healthMetrics} />
+      <GoalsSection goals={goals} />
     </div>
   );
 };

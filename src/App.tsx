@@ -18,7 +18,7 @@ const App = () => {
             <Route path="/calendar" element={<div>Calendar Coming Soon</div>} />
             <Route path="/contacts" element={<Contacts />} />
             <Route path="/activities" element={<Activities />} />
-            <Route path="/health" element={<div>Health Coming Soon</div>} />
+            <Route path="/goals" element={<div>Goals Coming Soon</div>} />
           </Routes>
         </Layout>
         <ChatBubble />
