@@ -40,8 +40,8 @@ const Dashboard = () => {
     try {
       await initializeGoogleCalendar('YOUR_API_KEY');
       const events = await listEvents();
-      const formattedEvents: Event[] = (events || []).map((event: any, index: number) => ({
-        id: index + 1000, // Using a number ID starting from 1000 to avoid conflicts
+      const formattedEvents: Event[] = (events || []).map((event: any) => ({
+        id: parseInt(event.id.substring(0, 8), 16), // Convert first 8 chars of event ID to number
         title: event.summary || 'Untitled Event',
         time: new Date(event.start?.dateTime || event.start?.date).toLocaleTimeString(),
         type: 'work'
@@ -52,6 +52,7 @@ const Dashboard = () => {
         description: "Your Google Calendar events have been imported successfully.",
       });
     } catch (error) {
+      console.error('Calendar sync error:', error);
       toast({
         title: "Sync Failed",
         description: "Failed to sync with Google Calendar. Please try again.",

@@ -1,44 +1,23 @@
-// Initialize the Google Calendar API client
 export const initializeGoogleCalendar = (apiKey: string) => {
-  // Load the Google Calendar API client
-  return new Promise((resolve) => {
-    if (typeof window !== 'undefined') {
-      // @ts-ignore - gapi is loaded from external script
-      if (!window.gapi) {
-        const script = document.createElement('script');
-        script.src = 'https://apis.google.com/js/api.js';
-        script.onload = () => {
-          // @ts-ignore - gapi is loaded from external script
-          window.gapi.load('client', () => {
-            // @ts-ignore - gapi is loaded from external script
-            window.gapi.client.init({
-              apiKey: apiKey,
-              discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'],
-            }).then(() => {
-              resolve(true);
-            });
-          });
-        };
-        document.body.appendChild(script);
-      } else {
-        resolve(true);
-      }
-    }
-  });
+  // Store the API key for later use
+  localStorage.setItem('gcal_api_key', apiKey);
+  return Promise.resolve(true);
 };
 
 export const listEvents = async () => {
   try {
-    // @ts-ignore - gapi is loaded from external script
-    const response = await window.gapi.client.calendar.events.list({
-      'calendarId': 'primary',
-      'timeMin': (new Date()).toISOString(),
-      'showDeleted': false,
-      'singleEvents': true,
-      'maxResults': 10,
-      'orderBy': 'startTime'
-    });
-    return response.result.items;
+    const apiKey = localStorage.getItem('gcal_api_key');
+    if (!apiKey) throw new Error('Google Calendar API key not found');
+
+    const timeMin = new Date().toISOString();
+    const url = `https://www.googleapis.com/calendar/v3/calendars/primary/events?key=${apiKey}&timeMin=${timeMin}&maxResults=10&singleEvents=true&orderBy=startTime`;
+
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+    return data.items;
   } catch (error) {
     console.error('Error fetching calendar events:', error);
     throw error;
