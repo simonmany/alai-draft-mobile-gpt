@@ -1,25 +1,49 @@
-export const initializeGoogleCalendar = (apiKey: string) => {
-  // Store the API key for later use
-  localStorage.setItem('gcal_api_key', apiKey);
-  return Promise.resolve(true);
+const CLIENT_ID = '1234567890-example.apps.googleusercontent.com'; // Replace with your actual client ID
+const SCOPES = 'https://www.googleapis.com/auth/calendar.readonly';
+
+export const initializeGoogleCalendar = async () => {
+  try {
+    const tokenResponse = await window.gapi.client.init({
+      clientId: CLIENT_ID,
+      scope: SCOPES,
+      plugin_name: 'calendar'
+    });
+
+    return tokenResponse;
+  } catch (error) {
+    console.error('Error initializing Google Calendar:', error);
+    throw error;
+  }
 };
 
 export const listEvents = async () => {
   try {
-    const apiKey = localStorage.getItem('gcal_api_key');
-    if (!apiKey) throw new Error('Google Calendar API key not found');
+    await window.gapi.client.load('calendar', 'v3');
+    const response = await window.gapi.client.calendar.events.list({
+      'calendarId': 'primary',
+      'timeMin': (new Date()).toISOString(),
+      'showDeleted': false,
+      'singleEvents': true,
+      'maxResults': 10,
+      'orderBy': 'startTime'
+    });
 
-    const timeMin = new Date().toISOString();
-    const url = `https://www.googleapis.com/calendar/v3/calendars/primary/events?key=${apiKey}&timeMin=${timeMin}&maxResults=10&singleEvents=true&orderBy=startTime`;
-
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    const data = await response.json();
-    return data.items;
+    return response.result.items;
   } catch (error) {
     console.error('Error fetching calendar events:', error);
     throw error;
   }
+};
+
+export const handleAuthClick = () => {
+  return window.gapi.auth2.getAuthInstance().signIn();
+};
+
+export const loadGoogleAPI = () => {
+  const script = document.createElement('script');
+  script.src = 'https://apis.google.com/js/api.js';
+  script.onload = () => {
+    window.gapi.load('client:auth2', initializeGoogleCalendar);
+  };
+  document.body.appendChild(script);
 };
