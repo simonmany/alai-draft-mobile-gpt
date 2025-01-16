@@ -14,10 +14,14 @@ import {
   type Event,
   type Contact
 } from "@/data/dashboardData";
+import { Input } from "./ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "./ui/dialog";
 
 const Dashboard = () => {
   const [isPlanningOpen, setIsPlanningOpen] = useState(false);
   const [googleEvents, setGoogleEvents] = useState<Event[]>([]);
+  const [apiKeyDialogOpen, setApiKeyDialogOpen] = useState(false);
+  const [apiKey, setApiKey] = useState("");
   const { toast } = useToast();
 
   const handleTimeSlotClick = () => {
@@ -37,8 +41,14 @@ const Dashboard = () => {
   };
 
   const handleGoogleCalendarSync = async () => {
+    const storedApiKey = localStorage.getItem('gcal_api_key');
+    if (!storedApiKey) {
+      setApiKeyDialogOpen(true);
+      return;
+    }
+
     try {
-      await initializeGoogleCalendar('YOUR_API_KEY');
+      await initializeGoogleCalendar(storedApiKey);
       const events = await listEvents();
       const formattedEvents: Event[] = (events || []).map((event: any) => ({
         id: parseInt(event.id.substring(0, 8), 16), // Convert first 8 chars of event ID to number
@@ -61,6 +71,21 @@ const Dashboard = () => {
     }
   };
 
+  const handleApiKeySubmit = async () => {
+    if (!apiKey.trim()) {
+      toast({
+        title: "Invalid API Key",
+        description: "Please enter a valid Google Calendar API key.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    localStorage.setItem('gcal_api_key', apiKey);
+    setApiKeyDialogOpen(false);
+    await handleGoogleCalendarSync();
+  };
+
   return (
     <div className="space-y-6">
       <DashboardHeader onPlanClick={handlePlanClick} />
@@ -73,6 +98,29 @@ const Dashboard = () => {
           Sync Google Calendar
         </Button>
       </div>
+
+      <Dialog open={apiKeyDialogOpen} onOpenChange={setApiKeyDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Enter Google Calendar API Key</DialogTitle>
+            <DialogDescription>
+              Please enter your Google Calendar API key to sync your calendar.
+              You can obtain an API key from the Google Cloud Console.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 pt-4">
+            <Input
+              type="password"
+              placeholder="Enter your API key"
+              value={apiKey}
+              onChange={(e) => setApiKey(e.target.value)}
+            />
+            <Button onClick={handleApiKeySubmit} className="w-full">
+              Save and Sync
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <PlanningDialog
         isOpen={isPlanningOpen}
