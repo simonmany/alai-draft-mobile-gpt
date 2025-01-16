@@ -1,15 +1,15 @@
-import { calendar_v3, google } from '@googleapis/calendar';
+import { calendar } from '@googleapis/calendar';
 
 export const initializeGoogleCalendar = (apiKey: string) => {
-  return google.calendar({
+  return calendar({
     version: 'v3',
     auth: apiKey
   });
 };
 
-export const listEvents = async (calendar: calendar_v3.Calendar) => {
+export const listEvents = async (calendarInstance: any) => {
   try {
-    const response = await calendar.events.list({
+    const response = await calendarInstance.events.list({
       calendarId: 'primary',
       timeMin: new Date().toISOString(),
       maxResults: 10,

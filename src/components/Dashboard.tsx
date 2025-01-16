@@ -17,7 +17,7 @@ import {
 
 const Dashboard = () => {
   const [isPlanningOpen, setIsPlanningOpen] = useState(false);
-  const [googleEvents, setGoogleEvents] = useState<any[]>([]);
+  const [googleEvents, setGoogleEvents] = useState<Event[]>([]);
   const { toast } = useToast();
 
   const handleTimeSlotClick = () => {
@@ -40,7 +40,13 @@ const Dashboard = () => {
     try {
       const calendar = initializeGoogleCalendar('YOUR_API_KEY');
       const events = await listEvents(calendar);
-      setGoogleEvents(events || []);
+      const formattedEvents: Event[] = (events || []).map((event: any, index: number) => ({
+        id: index + 1000, // Using a number ID starting from 1000 to avoid conflicts
+        title: event.summary || 'Untitled Event',
+        time: new Date(event.start?.dateTime || event.start?.date).toLocaleTimeString(),
+        type: 'work'
+      }));
+      setGoogleEvents(formattedEvents);
       toast({
         title: "Calendar Synced",
         description: "Your Google Calendar events have been imported successfully.",
@@ -76,12 +82,7 @@ const Dashboard = () => {
 
       <DashboardContent
         activityFeed={activityFeed}
-        upcomingEvents={[...upcomingEvents, ...googleEvents.map((event, index) => ({
-          id: `google-${index}`,
-          title: event.summary || 'Untitled Event',
-          time: new Date(event.start?.dateTime || event.start?.date).toLocaleTimeString(),
-          type: 'work'
-        }))]}
+        upcomingEvents={[...upcomingEvents, ...googleEvents]}
         recentContacts={recentContacts}
         goals={goals}
         onEventClick={handleEventClick}
