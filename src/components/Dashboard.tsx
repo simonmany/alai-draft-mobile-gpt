@@ -38,8 +38,8 @@ const Dashboard = () => {
 
   const handleGoogleCalendarSync = async () => {
     try {
-      const calendar = initializeGoogleCalendar('YOUR_API_KEY');
-      const events = await listEvents(calendar);
+      await initializeGoogleCalendar('YOUR_API_KEY');
+      const events = await listEvents();
       const formattedEvents: Event[] = (events || []).map((event: any, index: number) => ({
         id: index + 1000, // Using a number ID starting from 1000 to avoid conflicts
         title: event.summary || 'Untitled Event',
