@@ -2,9 +2,6 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 import AlCharacter from "./AlCharacter";
 import InterestsSelection from "./InterestsSelection";
 
@@ -59,13 +56,10 @@ const questions: Question[] = [
 ];
 
 const PersonalityAssessment = () => {
-  const navigate = useNavigate();
-  const { toast } = useToast();
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [isNodding, setIsNodding] = useState(false);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [notes, setNotes] = useState<Record<string, string>>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [showInterests, setShowInterests] = useState(false);
 
   const handleOptionSelect = (option: string) => {
@@ -83,57 +77,16 @@ const PersonalityAssessment = () => {
     setNotes(prev => ({ ...prev, [question.field + "_notes"]: note }));
   };
 
-  const handleContinue = async () => {
+  const handleContinue = () => {
     if (currentQuestion < questions.length - 1) {
       setCurrentQuestion(prev => prev + 1);
     } else {
-      setIsSubmitting(true);
-      try {
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        if (sessionError) throw sessionError;
-        if (!session?.user) throw new Error("No user found");
-
-        const user_id = session.user.id;
-
-        // Save personality assessment
-        const { error } = await supabase
-          .from('personality_assessment')
-          .insert({
-            user_id,
-            social_energy: answers.social_energy,
-            social_style: answers.social_style,
-            planning_style: answers.planning_style,
-            social_energy_notes: notes.social_energy_notes || null,
-            social_style_notes: notes.social_style_notes || null,
-            planning_style_notes: notes.planning_style_notes || null,
-          });
-
-        if (error) throw error;
-
-        // Update onboarding step in profile
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .update({ onboarding_step: 4 })
-          .eq('id', user_id);
-
-        if (profileError) throw profileError;
-
-        setShowInterests(true);
-      } catch (error) {
-        console.error('Error saving personality assessment:', error);
-        toast({
-          title: "Error",
-          description: "Failed to save your personality assessment. Please try again.",
-          variant: "destructive",
-        });
-      } finally {
-        setIsSubmitting(false);
-      }
+      setShowInterests(true);
     }
   };
 
   const handleInterestsComplete = () => {
-    navigate("/activities");
+    // This will be handled by the InterestsSelection component
   };
 
   if (showInterests) {
@@ -184,11 +137,11 @@ const PersonalityAssessment = () => {
 
       <Button
         onClick={handleContinue}
-        disabled={!answers[question.field] || isSubmitting}
+        disabled={!answers[question.field]}
         size="lg"
         className="w-full mt-8"
       >
-        {isSubmitting ? "Saving..." : currentQuestion < questions.length - 1 ? "Continue" : "Finish!"}
+        {currentQuestion < questions.length - 1 ? "Continue" : "Finish!"}
       </Button>
     </div>
   );
