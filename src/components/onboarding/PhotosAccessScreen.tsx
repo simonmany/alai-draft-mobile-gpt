@@ -14,7 +14,8 @@ const PhotosAccessScreen = ({ onComplete }: PhotosAccessScreenProps) => {
 
   const handleComplete = () => {
     onComplete();
-    navigate('/', { replace: true });
+    // Force a full navigation to the root path which will render the Layout with tabs
+    window.location.href = '/';
   };
 
   return (
