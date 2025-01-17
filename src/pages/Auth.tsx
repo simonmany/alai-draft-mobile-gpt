@@ -7,12 +7,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import OnboardingSplash from "@/components/onboarding/OnboardingSplash";
+import { Button } from "@/components/ui/button";
 
 const Auth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [error, setError] = useState<string | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showNewUserSplash, setShowNewUserSplash] = useState(false);
 
   useEffect(() => {
     // Check if user is already logged in
@@ -105,6 +107,14 @@ const Auth = () => {
     return <OnboardingSplash onComplete={handleOnboardingComplete} />;
   }
 
+  if (showNewUserSplash) {
+    return (
+      <OnboardingSplash 
+        onComplete={() => setShowNewUserSplash(false)} 
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-assistant-background flex items-center justify-center p-4">
       <div className="w-full max-w-md space-y-8">
@@ -137,6 +147,16 @@ const Auth = () => {
             }}
             providers={[]}
           />
+
+          <div className="mt-6 text-center">
+            <Button
+              variant="ghost"
+              onClick={() => setShowNewUserSplash(true)}
+              className="text-sm text-gray-600 hover:text-gray-900"
+            >
+              Don't have an account?
+            </Button>
+          </div>
         </div>
       </div>
     </div>
