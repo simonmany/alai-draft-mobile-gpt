@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Check } from "lucide-react";
 import AlCharacter from "./AlCharacter";
-import { supabase } from "@/integrations/supabase/client";
 import DemographicsScreen from "./DemographicsScreen";
 
 const commonInterests = [
@@ -50,17 +49,8 @@ const InterestsSelection = ({ onComplete }: InterestsSelectionProps) => {
     setTimeout(() => setIsNodding(false), 1000);
   };
 
-  const handleContinue = async () => {
-    const { error } = await supabase
-      .from('profiles')
-      .update({ interests: selectedInterests })
-      .eq('id', (await supabase.auth.getUser()).data.user?.id);
-
-    if (error) {
-      console.error('Error saving interests:', error);
-    } else {
-      setShowDemographics(true);
-    }
+  const handleContinue = () => {
+    setShowDemographics(true);
   };
 
   const filteredInterests = commonInterests.filter(interest =>
