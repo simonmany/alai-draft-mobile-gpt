@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Command } from "@/components/ui/command";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Check } from "lucide-react";
 import AlCharacter from "./AlCharacter";
 import { supabase } from "@/integrations/supabase/client";
@@ -81,16 +81,16 @@ const InterestsSelection = ({ onComplete }: InterestsSelectionProps) => {
 
         <div className="space-y-4">
           <Command className="rounded-lg border shadow-md">
-            <Command.Input 
+            <CommandInput 
               placeholder="Type or search interests..." 
               value={search}
               onValueChange={setSearch}
             />
-            <Command.List>
-              <Command.Empty>No interests found.</Command.Empty>
-              <Command.Group>
+            <CommandList>
+              <CommandEmpty>No interests found.</CommandEmpty>
+              <CommandGroup>
                 {filteredInterests.map((interest) => (
-                  <Command.Item
+                  <CommandItem
                     key={interest}
                     value={interest}
                     onSelect={() => handleSelectInterest(interest)}
@@ -106,10 +106,10 @@ const InterestsSelection = ({ onComplete }: InterestsSelectionProps) => {
                       </div>
                       <span>{interest}</span>
                     </div>
-                  </Command.Item>
+                  </CommandItem>
                 ))}
-              </Command.Group>
-            </Command.List>
+              </CommandGroup>
+            </CommandList>
           </Command>
 
           <div className="flex flex-wrap gap-2 mt-4">
