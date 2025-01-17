@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import GoalsSelectionStep from "./GoalsSelectionStep";
 import GoalsRankingStep from "./GoalsRankingStep";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface OnboardingSplashProps {
   onComplete: () => void;
@@ -12,15 +14,48 @@ interface OnboardingSplashProps {
 const OnboardingSplash = ({ onComplete }: OnboardingSplashProps) => {
   const [step, setStep] = useState(1);
   const [selectedGoals, setSelectedGoals] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleInitialContinue = async () => {
-    const { error } = await supabase
-      .from('profiles')
-      .update({ onboarding_step: 2 })
-      .eq('id', (await supabase.auth.getUser()).data.user?.id);
+    setIsLoading(true);
+    try {
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !user) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Please sign in to continue",
+        });
+        navigate("/auth");
+        return;
+      }
 
-    if (!error) {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ onboarding_step: 2 })
+        .eq('id', user.id);
+
+      if (error) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to update profile. Please try again.",
+        });
+        return;
+      }
+
       setStep(2);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -65,8 +100,9 @@ const OnboardingSplash = ({ onComplete }: OnboardingSplashProps) => {
             onClick={handleInitialContinue}
             size="lg"
             className="mt-8 text-lg"
+            disabled={isLoading}
           >
-            Let's Go Then!
+            {isLoading ? "Loading..." : "Let's Go Then!"}
           </Button>
         </motion.div>
       </div>

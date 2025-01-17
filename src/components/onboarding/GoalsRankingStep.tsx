@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { motion, Reorder } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 const GOALS_MAP: Record<string, string> = {
   hangOutMore: "Hang Out More",
@@ -23,32 +24,54 @@ const GoalsRankingStep = ({ selectedGoals, onComplete }: GoalsRankingStepProps) 
   const [rankedGoals, setRankedGoals] = useState(selectedGoals);
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const navigate = useNavigate();
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
-    const { error } = await supabase
-      .from('profiles')
-      .update({
-        goals: rankedGoals.map((goalId, index) => ({
-          id: goalId,
-          label: GOALS_MAP[goalId],
-          priority: index + 1
-        })),
-        onboarding_step: 3
-      })
-      .eq('id', (await supabase.auth.getUser()).data.user?.id);
+    try {
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !user) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Please sign in to continue",
+        });
+        navigate("/auth");
+        return;
+      }
 
-    if (error) {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          goals: rankedGoals.map((goalId, index) => ({
+            id: goalId,
+            label: GOALS_MAP[goalId],
+            priority: index + 1
+          })),
+          onboarding_step: 3
+        })
+        .eq('id', user.id);
+
+      if (error) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to save goals. Please try again.",
+        });
+        return;
+      }
+
+      onComplete();
+    } catch (error) {
       toast({
         variant: "destructive",
-        title: "Error saving goals",
-        description: "Please try again.",
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
       });
+    } finally {
       setIsSubmitting(false);
-      return;
     }
-
-    onComplete();
   };
 
   return (
