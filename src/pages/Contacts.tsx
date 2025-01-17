@@ -11,13 +11,6 @@ const Contacts = () => {
   // Sample groups data - in a real app, this would come from a database
   const groups = [
     {
-      name: "Inner Orbit",
-      contacts: [
-        { id: 7, name: "Sarah Johnson", status: "Close Friend" },
-        { id: 8, name: "Mike Peters", status: "Family" },
-      ]
-    },
-    {
       name: "College Friends",
       contacts: [
         { id: 9, name: "Emma Wilson", status: "Roommate" },
@@ -54,7 +47,7 @@ const Contacts = () => {
     <div className="container mx-auto space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Your Social Circle</CardTitle>
+          <CardTitle>Inner Orbit</CardTitle>
         </CardHeader>
         <CardContent>
           <ContactsOrbit />
