@@ -20,6 +20,8 @@ export type Database = {
           languages: string[] | null
           location: string | null
           occupation: string | null
+          onboarding_completed: boolean | null
+          onboarding_step: number | null
           personality_traits: Json | null
           phone_number: string | null
           relationship_status: string | null
@@ -37,6 +39,8 @@ export type Database = {
           languages?: string[] | null
           location?: string | null
           occupation?: string | null
+          onboarding_completed?: boolean | null
+          onboarding_step?: number | null
           personality_traits?: Json | null
           phone_number?: string | null
           relationship_status?: string | null
@@ -54,6 +58,8 @@ export type Database = {
           languages?: string[] | null
           location?: string | null
           occupation?: string | null
+          onboarding_completed?: boolean | null
+          onboarding_step?: number | null
           personality_traits?: Json | null
           phone_number?: string | null
           relationship_status?: string | null

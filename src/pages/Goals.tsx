@@ -1,20 +1,47 @@
-import { goals } from "@/data/dashboardData";
-import { Progress } from "@/components/ui/progress";
+import { useNavigate } from "react-router-dom";
+import { LogOut } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const Goals = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleSignOut = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Error signing out",
+        description: error.message,
+      });
+    } else {
+      navigate("/auth");
+      toast({
+        title: "Signed out",
+        description: "You have been successfully signed out.",
+      });
+    }
+  };
+
   return (
-    <div className="container mx-auto px-4">
-      <h1 className="text-2xl font-bold mb-6">Goals</h1>
-      <div className="space-y-6">
-        {goals.map((goal) => (
-          <div key={goal.id} className="bg-white p-6 rounded-lg shadow">
-            <div className="flex justify-between items-center mb-2">
-              <h3 className="text-lg font-medium">{goal.name}</h3>
-              <span className="text-sm text-gray-500">{goal.status}</span>
-            </div>
-            <Progress value={goal.progress} className="h-2" />
-          </div>
-        ))}
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-gray-900">Your Profile</h1>
+        <Button
+          variant="ghost"
+          className="text-gray-600 hover:text-gray-900"
+          onClick={handleSignOut}
+        >
+          <LogOut className="h-5 w-5 mr-2" />
+          Sign Out
+        </Button>
+      </div>
+      
+      {/* Goals content will go here */}
+      <div className="bg-white rounded-lg shadow p-6">
+        <p className="text-gray-600">Your goals and preferences will appear here.</p>
       </div>
     </div>
   );
