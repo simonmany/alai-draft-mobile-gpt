@@ -1,11 +1,15 @@
 import { useState } from "react";
-import { useLocation, Outlet } from "react-router-dom";
-import { Calendar, Users, User, Home, Plus } from "lucide-react";
+import { useLocation, Outlet, useNavigate } from "react-router-dom";
+import { Calendar, Users, User, Home, Plus, LogOut } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import DesktopSidebar from "./navigation/DesktopSidebar";
 import MobileNavigation from "./navigation/MobileNavigation";
 
 const Layout = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navigation = [
@@ -14,6 +18,27 @@ const Layout = () => {
     { name: "", href: "#", icon: Plus, isAction: true },
     { name: "Contacts", href: "/contacts", icon: Users },
     { name: "You", href: "/goals", icon: User },
+    { 
+      name: "Sign Out", 
+      href: "#",
+      icon: LogOut,
+      onClick: async () => {
+        const { error } = await supabase.auth.signOut();
+        if (error) {
+          toast({
+            variant: "destructive",
+            title: "Error signing out",
+            description: error.message,
+          });
+        } else {
+          navigate("/auth");
+          toast({
+            title: "Signed out",
+            description: "You have been successfully signed out.",
+          });
+        }
+      }
+    }
   ];
 
   const handlePlanningClick = () => {
