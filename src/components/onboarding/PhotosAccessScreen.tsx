@@ -44,8 +44,11 @@ const PhotosAccessScreen = ({ onComplete }: PhotosAccessScreenProps) => {
         description: "Your profile is all set up.",
       });
 
+      // Call onComplete callback
+      onComplete();
+      
       // Navigate to the main app
-      navigate('/');
+      navigate('/', { replace: true });
     } catch (error) {
       console.error('Error completing onboarding:', error);
       toast({
@@ -54,7 +57,7 @@ const PhotosAccessScreen = ({ onComplete }: PhotosAccessScreenProps) => {
         variant: "destructive",
       });
       // Navigate anyway since this is just a mockup
-      navigate('/');
+      navigate('/', { replace: true });
     }
   };
 
