@@ -13,22 +13,29 @@ const Auth = () => {
 
   const getErrorMessage = (error: AuthError) => {
     if (error instanceof AuthApiError) {
-      switch (error.message) {
-        case 'Email not confirmed':
-          return 'Please verify your email address before signing in.';
-        case 'Invalid login credentials':
-          return 'Invalid email or password. Please check your credentials and try again.';
-        case 'Password is required':
-          return 'Please enter your password.';
-        case 'Email is required':
-          return 'Please enter your email address.';
-        case 'User not found':
-          return 'No account exists with this email address. Please sign up first.';
+      // First check the error code
+      switch (error.code) {
+        case 'validation_failed':
+          return 'Please enter both email and password.';
         default:
-          if (error.message.includes('valid email')) {
-            return 'Please enter a valid email address.';
+          // If it's not a specific code we recognize, check the message
+          switch (error.message) {
+            case 'Email not confirmed':
+              return 'Please verify your email address before signing in.';
+            case 'Invalid login credentials':
+              return 'Invalid email or password. Please check your credentials and try again.';
+            case 'Password is required':
+              return 'Please enter your password.';
+            case 'Email is required':
+              return 'Please enter your email address.';
+            case 'User not found':
+              return 'No account exists with this email address. Please sign up first.';
+            default:
+              if (error.message.includes('valid email')) {
+                return 'Please enter a valid email address.';
+              }
+              return error.message;
           }
-          return error.message;
       }
     }
     return error.message;
