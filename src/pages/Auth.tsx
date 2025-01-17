@@ -6,18 +6,30 @@ import { AuthError, AuthApiError } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
+import OnboardingSplash from "@/components/onboarding/OnboardingSplash";
 
 const Auth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [error, setError] = useState<string | null>(null);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
     // Check if user is already logged in
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        navigate("/");
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('onboarding_completed')
+          .eq('id', session.user.id)
+          .single();
+
+        if (profile && !profile.onboarding_completed) {
+          setShowOnboarding(true);
+        } else {
+          navigate("/");
+        }
       }
     };
     checkUser();
@@ -25,11 +37,21 @@ const Auth = () => {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session) {
-        navigate("/");
-        toast({
-          title: "Welcome!",
-          description: "You have successfully signed in.",
-        });
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('onboarding_completed')
+          .eq('id', session.user.id)
+          .single();
+
+        if (profile && !profile.onboarding_completed) {
+          setShowOnboarding(true);
+        } else {
+          navigate("/");
+          toast({
+            title: "Welcome!",
+            description: "You have successfully signed in.",
+          });
+        }
       } else if (event === 'SIGNED_OUT') {
         setError(null);
       } else if (event === 'USER_UPDATED') {
@@ -47,7 +69,6 @@ const Auth = () => {
 
   const getErrorMessage = (error: AuthError) => {
     if (error instanceof AuthApiError) {
-      // Handle specific error codes
       switch (error.status) {
         case 400:
           return "Please enter both email and password.";
@@ -63,6 +84,26 @@ const Auth = () => {
     }
     return error.message;
   };
+
+  const handleOnboardingComplete = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      await supabase
+        .from('profiles')
+        .update({ onboarding_completed: true })
+        .eq('id', session.user.id);
+      
+      navigate("/");
+      toast({
+        title: "Welcome!",
+        description: "Let's get started!",
+      });
+    }
+  };
+
+  if (showOnboarding) {
+    return <OnboardingSplash onComplete={handleOnboardingComplete} />;
+  }
 
   return (
     <div className="min-h-screen bg-assistant-background flex items-center justify-center p-4">
