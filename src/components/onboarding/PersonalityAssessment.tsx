@@ -5,7 +5,6 @@ import { Textarea } from "@/components/ui/textarea";
 import AlCharacter from "./AlCharacter";
 import InterestsSelection from "./InterestsSelection";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
 
 interface Question {
   id: string;
@@ -58,7 +57,6 @@ const questions: Question[] = [
 ];
 
 const PersonalityAssessment = () => {
-  const navigate = useNavigate();
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [isNodding, setIsNodding] = useState(false);
   const [answers, setAnswers] = useState<Record<string, string>>({});
