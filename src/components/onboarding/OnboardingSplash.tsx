@@ -1,11 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
 import GoalsSelectionStep from "./GoalsSelectionStep";
 import GoalsRankingStep from "./GoalsRankingStep";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 
 interface OnboardingSplashProps {
   onComplete: () => void;
@@ -15,90 +12,9 @@ const OnboardingSplash = ({ onComplete }: OnboardingSplashProps) => {
   const [step, setStep] = useState(1);
   const [selectedGoals, setSelectedGoals] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
-  const navigate = useNavigate();
 
-  // Check authentication status on mount
-  useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        console.log('No session found, redirecting to auth');
-        navigate('/auth');
-      }
-    };
-    checkAuth();
-  }, [navigate]);
-
-  const handleInitialContinue = async () => {
-    console.log("Starting handleInitialContinue");
-    setIsLoading(true);
-    
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        console.log('No active session, redirecting to auth');
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Please sign in to continue",
-        });
-        navigate("/auth");
-        return;
-      }
-
-      const userId = session.user.id;
-      console.log('Current user:', userId);
-
-      // First, get the current profile
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('onboarding_step')
-        .eq('id', userId)
-        .single();
-
-      if (profileError) {
-        console.error('Profile fetch error:', profileError);
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Failed to fetch profile. Please try again.",
-        });
-        return;
-      }
-
-      console.log('Current profile:', profile);
-
-      // Update the onboarding step
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ onboarding_step: 2 })
-        .eq('id', userId);
-
-      if (updateError) {
-        console.error('Update error:', updateError);
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Failed to update profile. Please try again.",
-        });
-        return;
-      }
-
-      console.log('Successfully updated onboarding step to 2');
-      setStep(2);
-      console.log('Set step to 2');
-    } catch (error) {
-      console.error('Unexpected error:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "An unexpected error occurred. Please try again.",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+  const handleInitialContinue = () => {
+    setStep(2);
   };
 
   const handleGoalsSelected = (goals: string[]) => {
