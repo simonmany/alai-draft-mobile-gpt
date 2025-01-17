@@ -10,7 +10,9 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import AlCharacter from "./AlCharacter";
-import { supabase } from "@/integrations/supabase/client";
+import CalendarContactsScreen from "./CalendarContactsScreen";
+import SocialLinksScreen from "./SocialLinksScreen";
+import PhotosAccessScreen from "./PhotosAccessScreen";
 
 interface DemographicsScreenProps {
   onComplete: () => void;
@@ -55,6 +57,9 @@ const genderOptions = [
 
 const DemographicsScreen = ({ onComplete }: DemographicsScreenProps) => {
   const [isNodding, setIsNodding] = useState(false);
+  const [currentScreen, setCurrentScreen] = useState<
+    "demographics" | "calendar" | "social" | "photos"
+  >("demographics");
   const [formData, setFormData] = useState({
     age: "",
     location: "",
@@ -71,25 +76,29 @@ const DemographicsScreen = ({ onComplete }: DemographicsScreenProps) => {
     setTimeout(() => setIsNodding(false), 1000);
   };
 
-  const handleContinue = async () => {
-    const { error } = await supabase
-      .from('profiles')
-      .update({
-        age: parseInt(formData.age),
-        location: formData.location,
-        languages: formData.languages,
-        relationship_status: formData.relationshipStatus,
-        gender: formData.gender,
-        occupation: formData.occupation
-      })
-      .eq('id', (await supabase.auth.getUser()).data.user?.id);
-
-    if (error) {
-      console.error('Error saving demographics:', error);
-    } else {
-      onComplete();
-    }
+  const handleContinue = () => {
+    setCurrentScreen("calendar");
   };
+
+  const handleCalendarComplete = () => {
+    setCurrentScreen("social");
+  };
+
+  const handleSocialComplete = () => {
+    setCurrentScreen("photos");
+  };
+
+  if (currentScreen === "photos") {
+    return <PhotosAccessScreen onComplete={onComplete} />;
+  }
+
+  if (currentScreen === "social") {
+    return <SocialLinksScreen onComplete={handleSocialComplete} />;
+  }
+
+  if (currentScreen === "calendar") {
+    return <CalendarContactsScreen onComplete={handleCalendarComplete} />;
+  }
 
   return (
     <div className="fixed inset-0 flex flex-col items-center justify-center bg-assistant-background p-4">
