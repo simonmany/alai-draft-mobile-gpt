@@ -2,10 +2,8 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import AlCharacter from "./AlCharacter";
-import InterestsSelection from "./InterestsSelection";
-import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import AlCharacter from "./AlCharacter";
 
 interface Question {
   id: string;
@@ -63,9 +61,8 @@ const PersonalityAssessment = () => {
   const [isNodding, setIsNodding] = useState(false);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [notes, setNotes] = useState<Record<string, string>>({});
-  const [showInterests, setShowInterests] = useState(false);
 
-  const handleOptionSelect = async (option: string) => {
+  const handleOptionSelect = (option: string) => {
     const question = questions[currentQuestion];
     setAnswers(prev => ({ ...prev, [question.field]: option }));
     setIsNodding(true);
@@ -80,34 +77,14 @@ const PersonalityAssessment = () => {
     setNotes(prev => ({ ...prev, [question.field + "_notes"]: note }));
   };
 
-  const handleContinue = async () => {
+  const handleContinue = () => {
     if (currentQuestion < questions.length - 1) {
       setCurrentQuestion(prev => prev + 1);
     } else {
-      // Save personality assessment
-      const { error } = await supabase
-        .from('personality_assessment')
-        .insert([{
-          user_id: (await supabase.auth.getUser()).data.user?.id,
-          social_energy: answers.social_energy,
-          social_style: answers.social_style,
-          planning_style: answers.planning_style,
-          social_energy_notes: notes.social_energy_notes,
-          social_style_notes: notes.social_style_notes,
-          planning_style_notes: notes.planning_style_notes,
-        }]);
-
-      if (error) {
-        console.error('Error saving personality assessment:', error);
-      } else {
-        setShowInterests(true);
-      }
+      // Navigate to activities screen instead of showing interests
+      navigate("/activities");
     }
   };
-
-  if (showInterests) {
-    return <InterestsSelection onComplete={() => navigate('/')} />;
-  }
 
   const question = questions[currentQuestion];
 

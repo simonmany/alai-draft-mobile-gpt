@@ -7,6 +7,7 @@ import Calendar from "@/pages/Calendar";
 import Contacts from "@/pages/Contacts";
 import ContactDetails from "@/pages/ContactDetails";
 import Goals from "@/pages/Goals";
+import Activities from "@/pages/Activities";
 import Auth from "@/pages/Auth";
 
 function App() {
@@ -45,6 +46,7 @@ function App() {
           <Route path="contacts" element={<Contacts />} />
           <Route path="contacts/:id" element={<ContactDetails />} />
           <Route path="goals" element={<Goals />} />
+          <Route path="activities" element={<Activities />} />
         </Route>
       </Routes>
     </Router>
