@@ -2,7 +2,6 @@ import React from "react";
 import { Auth as SupabaseAuth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface AuthUIProps {
@@ -42,16 +41,6 @@ const AuthUI = ({ error, onNewUser }: AuthUIProps) => {
           }}
           providers={[]}
         />
-
-        <div className="mt-6 text-center">
-          <Button
-            variant="ghost"
-            onClick={onNewUser}
-            className="text-sm text-gray-600 hover:text-gray-900"
-          >
-            Don't have an account?
-          </Button>
-        </div>
       </div>
     </div>
   );
