@@ -3,6 +3,8 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import AlCharacter from "./AlCharacter";
 
 interface Question {
@@ -57,10 +59,12 @@ const questions: Question[] = [
 
 const PersonalityAssessment = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [isNodding, setIsNodding] = useState(false);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [notes, setNotes] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleOptionSelect = (option: string) => {
     const question = questions[currentQuestion];
@@ -77,12 +81,46 @@ const PersonalityAssessment = () => {
     setNotes(prev => ({ ...prev, [question.field + "_notes"]: note }));
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (currentQuestion < questions.length - 1) {
       setCurrentQuestion(prev => prev + 1);
     } else {
-      // Navigate directly to activities screen after last question
-      navigate("/activities");
+      setIsSubmitting(true);
+      try {
+        // Save personality assessment
+        const { error } = await supabase
+          .from('personality_assessment')
+          .insert({
+            social_energy: answers.social_energy,
+            social_style: answers.social_style,
+            planning_style: answers.planning_style,
+            social_energy_notes: notes.social_energy_notes,
+            social_style_notes: notes.social_style_notes,
+            planning_style_notes: notes.planning_style_notes,
+          });
+
+        if (error) throw error;
+
+        // Update onboarding step in profile
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({ onboarding_step: 5 })
+          .eq('id', (await supabase.auth.getUser()).data.user?.id);
+
+        if (profileError) throw profileError;
+
+        // Navigate to activities screen
+        navigate("/activities");
+      } catch (error) {
+        console.error('Error saving personality assessment:', error);
+        toast({
+          title: "Error",
+          description: "Failed to save your personality assessment. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -130,11 +168,11 @@ const PersonalityAssessment = () => {
 
       <Button
         onClick={handleContinue}
-        disabled={!answers[question.field]}
+        disabled={!answers[question.field] || isSubmitting}
         size="lg"
         className="w-full mt-8"
       >
-        Continue
+        {isSubmitting ? "Saving..." : "Continue"}
       </Button>
     </div>
   );
