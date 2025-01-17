@@ -39,9 +39,6 @@ const AuthUI = ({ error, onNewUser }: AuthUIProps) => {
                 },
               },
             },
-            className: {
-              anchor: 'hidden',
-            },
           }}
           providers={[]}
         />
