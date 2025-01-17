@@ -13,50 +13,34 @@ const Auth = () => {
 
   const getErrorMessage = (error: AuthError) => {
     if (error instanceof AuthApiError) {
-      // First check if it's a validation error from the API response
-      if (error.status === 400) {
+      // Handle validation errors
+      if (error.message) {
         try {
           const errorBody = JSON.parse(error.message);
           if (errorBody.code === "validation_failed") {
             return "Please enter both email and password.";
           }
+          if (errorBody.message) {
+            return errorBody.message;
+          }
         } catch (e) {
-          // If parsing fails, continue to regular error handling
-        }
-      }
-
-      // Then check specific error codes
-      switch (error.code) {
-        case 'validation_failed':
-          return 'Please enter both email and password.';
-        default:
-          // If it's not a specific code we recognize, check the message
-          switch (error.message) {
-            case 'Email not confirmed':
-              return 'Please verify your email address before signing in.';
-            case 'Invalid login credentials':
+          // If JSON parsing fails, handle specific error codes
+          switch (error.code) {
+            case 'invalid_credentials':
               return 'Invalid email or password. Please check your credentials and try again.';
-            case 'Password is required':
-              return 'Please enter your password.';
-            case 'Email is required':
-              return 'Please enter your email address.';
-            case 'User not found':
+            case 'email_not_confirmed':
+              return 'Please verify your email address before signing in.';
+            case 'user_not_found':
               return 'No account exists with this email address. Please sign up first.';
+            case 'invalid_grant':
+              return 'Invalid login credentials.';
             default:
               if (error.message.includes('valid email')) {
                 return 'Please enter a valid email address.';
               }
-              // Try to parse the error message if it's a JSON string
-              try {
-                const parsedError = JSON.parse(error.message);
-                if (parsedError.message) {
-                  return parsedError.message;
-                }
-              } catch (e) {
-                // If parsing fails, return the original message
-                return error.message;
-              }
+              return error.message;
           }
+        }
       }
     }
     return error.message;
