@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import AlCharacter from "./AlCharacter";
+import InterestsSelection from "./InterestsSelection";
 
 interface Question {
   id: string;
@@ -65,6 +66,7 @@ const PersonalityAssessment = () => {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showInterests, setShowInterests] = useState(false);
 
   const handleOptionSelect = (option: string) => {
     const question = questions[currentQuestion];
@@ -108,13 +110,12 @@ const PersonalityAssessment = () => {
         // Update onboarding step in profile
         const { error: profileError } = await supabase
           .from('profiles')
-          .update({ onboarding_step: 5 })
+          .update({ onboarding_step: 4 })
           .eq('id', user.id);
 
         if (profileError) throw profileError;
 
-        // Navigate to activities screen
-        navigate("/activities");
+        setShowInterests(true);
       } catch (error) {
         console.error('Error saving personality assessment:', error);
         toast({
@@ -127,6 +128,14 @@ const PersonalityAssessment = () => {
       }
     }
   };
+
+  const handleInterestsComplete = () => {
+    navigate("/activities");
+  };
+
+  if (showInterests) {
+    return <InterestsSelection onComplete={handleInterestsComplete} />;
+  }
 
   const question = questions[currentQuestion];
 
