@@ -9,6 +9,42 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      personality_assessment: {
+        Row: {
+          created_at: string
+          id: string
+          planning_style: string
+          planning_style_notes: string | null
+          social_energy: string
+          social_energy_notes: string | null
+          social_style: string
+          social_style_notes: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          planning_style: string
+          planning_style_notes?: string | null
+          social_energy: string
+          social_energy_notes?: string | null
+          social_style: string
+          social_style_notes?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          planning_style?: string
+          planning_style_notes?: string | null
+          social_energy?: string
+          social_energy_notes?: string | null
+          social_style?: string
+          social_style_notes?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           age: number | null

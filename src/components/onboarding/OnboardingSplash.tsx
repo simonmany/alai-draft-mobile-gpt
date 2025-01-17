@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import GoalsSelectionStep from "./GoalsSelectionStep";
 import GoalsRankingStep from "./GoalsRankingStep";
+import PersonalityAssessment from "./PersonalityAssessment";
 
 interface OnboardingSplashProps {
   onComplete: () => void;
@@ -22,6 +23,10 @@ const OnboardingSplash = ({ onComplete }: OnboardingSplashProps) => {
     setStep(3);
   };
 
+  const handleGoalsRanked = () => {
+    setStep(4);
+  };
+
   console.log('Current step:', step);
 
   if (step === 2) {
@@ -31,7 +36,12 @@ const OnboardingSplash = ({ onComplete }: OnboardingSplashProps) => {
 
   if (step === 3) {
     console.log('Rendering GoalsRankingStep');
-    return <GoalsRankingStep selectedGoals={selectedGoals} onComplete={onComplete} />;
+    return <GoalsRankingStep selectedGoals={selectedGoals} onComplete={handleGoalsRanked} />;
+  }
+
+  if (step === 4) {
+    console.log('Rendering PersonalityAssessment');
+    return <PersonalityAssessment />;
   }
 
   return (

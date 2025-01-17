@@ -1,19 +1,7 @@
-import React, { useState } from "react";
+import React from "react";
 import { Button } from "@/components/ui/button";
-import { motion, Reorder } from "framer-motion";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
-
-const GOALS_MAP: Record<string, string> = {
-  hangOutMore: "Hang Out More",
-  hangOutBetter: "Hang Out Better",
-  reconnect: "Reconnect with Old Friends",
-  meetNew: "Meet New People",
-  romance: "Find Romance",
-  activities: "Find Partners for a Specific Activity",
-  network: "Network Professionally",
-};
+import { motion } from "framer-motion";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 interface GoalsRankingStepProps {
   selectedGoals: string[];
@@ -21,57 +9,16 @@ interface GoalsRankingStepProps {
 }
 
 const GoalsRankingStep = ({ selectedGoals, onComplete }: GoalsRankingStepProps) => {
-  const [rankedGoals, setRankedGoals] = useState(selectedGoals);
-  const { toast } = useToast();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const navigate = useNavigate();
+  const [orderedGoals, setOrderedGoals] = React.useState(selectedGoals);
 
-  const handleSubmit = async () => {
-    setIsSubmitting(true);
-    try {
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      
-      if (userError || !user) {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Please sign in to continue",
-        });
-        navigate("/auth");
-        return;
-      }
+  const handleDragEnd = (result: any) => {
+    if (!result.destination) return;
 
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          goals: rankedGoals.map((goalId, index) => ({
-            id: goalId,
-            label: GOALS_MAP[goalId],
-            priority: index + 1
-          })),
-          onboarding_step: 3
-        })
-        .eq('id', user.id);
+    const items = Array.from(orderedGoals);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
 
-      if (error) {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Failed to save goals. Please try again.",
-        });
-        return;
-      }
-
-      onComplete();
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "An unexpected error occurred. Please try again.",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+    setOrderedGoals(items);
   };
 
   return (
@@ -82,38 +29,44 @@ const GoalsRankingStep = ({ selectedGoals, onComplete }: GoalsRankingStepProps) 
           animate={{ opacity: 1, y: 0 }}
           className="text-center space-y-4"
         >
-          <h1 className="text-3xl font-bold text-assistant-primary">Prioritize Your Goals</h1>
-          <p className="text-gray-600">Drag to reorder your goals from most to least important</p>
+          <h1 className="text-3xl font-bold text-assistant-primary">
+            Prioritize Your Goals
+          </h1>
+          <p className="text-gray-600">
+            Drag and drop to order your goals from most to least important
+          </p>
         </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          className="bg-white rounded-lg shadow-sm p-4"
-        >
-          <Reorder.Group
-            axis="y"
-            values={rankedGoals}
-            onReorder={setRankedGoals}
-            className="space-y-2"
-          >
-            {rankedGoals.map((goalId, index) => (
-              <Reorder.Item
-                key={goalId}
-                value={goalId}
-                className="bg-white p-4 rounded-lg shadow-sm cursor-move hover:shadow-md transition-shadow"
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <Droppable droppableId="goals">
+            {(provided) => (
+              <div
+                {...provided.droppableProps}
+                ref={provided.innerRef}
+                className="space-y-4"
               >
-                <div className="flex items-center space-x-3">
-                  <span className="text-lg font-medium text-assistant-primary">
-                    {index + 1}.
-                  </span>
-                  <span className="text-lg">{GOALS_MAP[goalId]}</span>
-                </div>
-              </Reorder.Item>
-            ))}
-          </Reorder.Group>
-        </motion.div>
+                {orderedGoals.map((goal, index) => (
+                  <Draggable key={goal} draggableId={goal} index={index}>
+                    {(provided) => (
+                      <div
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        {...provided.dragHandleProps}
+                        className="p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow"
+                      >
+                        <div className="flex items-center space-x-3">
+                          <span className="text-gray-400">{index + 1}</span>
+                          <span className="text-gray-900">{goal}</span>
+                        </div>
+                      </div>
+                    )}
+                  </Draggable>
+                ))}
+                {provided.placeholder}
+              </div>
+            )}
+          </Droppable>
+        </DragDropContext>
 
         <motion.div
           initial={{ opacity: 0 }}
@@ -121,13 +74,8 @@ const GoalsRankingStep = ({ selectedGoals, onComplete }: GoalsRankingStepProps) 
           transition={{ delay: 0.4 }}
           className="flex justify-center"
         >
-          <Button
-            onClick={handleSubmit}
-            disabled={isSubmitting}
-            size="lg"
-            className="mt-8"
-          >
-            {isSubmitting ? "Saving..." : "Continue"}
+          <Button onClick={onComplete} size="lg" className="mt-8">
+            Continue
           </Button>
         </motion.div>
       </div>
