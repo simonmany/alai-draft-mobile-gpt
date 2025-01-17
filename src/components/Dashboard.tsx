@@ -128,7 +128,7 @@ const Dashboard = () => {
       {/* Memories Carousel */}
       <Card className="p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Memories with Friends</h2>
-        <Carousel className="w-full" selectedIndex={activeSlide}>
+        <Carousel className="w-full">
           <CarouselContent>
             {memories.map((memory) => (
               <CarouselItem key={memory.id} className="md:basis-1/2 lg:basis-1/3">
