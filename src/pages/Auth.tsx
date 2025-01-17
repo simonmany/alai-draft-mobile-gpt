@@ -8,16 +8,43 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import OnboardingSplash from "@/components/onboarding/OnboardingSplash";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Form, FormField, FormItem, FormLabel, FormControl } from "@/components/ui/form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+
+const emailSchema = z.object({
+  email: z.string().email("Please enter a valid email address"),
+});
+
+const phoneSchema = z.object({
+  phone: z.string().min(10, "Please enter a valid phone number"),
+});
 
 const Auth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [error, setError] = useState<string | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const [showNewUserSplash, setShowNewUserSplash] = useState(false);
+  const [showNewUserFlow, setShowNewUserFlow] = useState(false);
+  const [signupStep, setSignupStep] = useState<'email' | 'phone'>('email');
+
+  const emailForm = useForm<z.infer<typeof emailSchema>>({
+    resolver: zodResolver(emailSchema),
+    defaultValues: {
+      email: "",
+    },
+  });
+
+  const phoneForm = useForm<z.infer<typeof phoneSchema>>({
+    resolver: zodResolver(phoneSchema),
+    defaultValues: {
+      phone: "",
+    },
+  });
 
   useEffect(() => {
-    // Check if user is already logged in
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
@@ -36,7 +63,6 @@ const Auth = () => {
     };
     checkUser();
 
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session) {
         const { data: profile } = await supabase
@@ -87,19 +113,32 @@ const Auth = () => {
     return error.message;
   };
 
-  const handleOnboardingComplete = async () => {
+  const handleEmailSubmit = async (values: z.infer<typeof emailSchema>) => {
+    const { error } = await supabase.auth.signUp({
+      email: values.email,
+      password: "temporary-password", // You might want to add a password field later
+    });
+
+    if (error) {
+      setError(getErrorMessage(error));
+    } else {
+      setSignupStep('phone');
+    }
+  };
+
+  const handlePhoneSubmit = async (values: z.infer<typeof phoneSchema>) => {
     const { data: { session } } = await supabase.auth.getSession();
     if (session) {
-      await supabase
+      const { error } = await supabase
         .from('profiles')
-        .update({ onboarding_completed: true })
+        .update({ phone_number: values.phone })
         .eq('id', session.user.id);
-      
-      navigate("/");
-      toast({
-        title: "Welcome!",
-        description: "Let's get started!",
-      });
+
+      if (error) {
+        setError("Failed to save phone number");
+      } else {
+        setShowOnboarding(true);
+      }
     }
   };
 
@@ -107,11 +146,79 @@ const Auth = () => {
     return <OnboardingSplash onComplete={handleOnboardingComplete} />;
   }
 
-  if (showNewUserSplash) {
+  if (showNewUserFlow) {
     return (
-      <OnboardingSplash 
-        onComplete={() => setShowNewUserSplash(false)} 
-      />
+      <div className="min-h-screen bg-assistant-background flex items-center justify-center p-4">
+        <div className="w-full max-w-md space-y-8">
+          {signupStep === 'email' ? (
+            <div className="space-y-6">
+              <div className="text-center">
+                <h2 className="text-3xl font-bold text-gray-900">What's your email?</h2>
+                <p className="mt-2 text-lg text-gray-600">
+                  We'll use this to create your account
+                </p>
+              </div>
+
+              <Form {...emailForm}>
+                <form onSubmit={emailForm.handleSubmit(handleEmailSubmit)} className="space-y-4">
+                  <FormField
+                    control={emailForm.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Input
+                            placeholder="Enter your email"
+                            type="email"
+                            className="text-lg h-12"
+                            {...field}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <Button type="submit" className="w-full text-lg h-12">
+                    Continue
+                  </Button>
+                </form>
+              </Form>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              <div className="text-center">
+                <h2 className="text-3xl font-bold text-gray-900">What's your phone number?</h2>
+                <p className="mt-2 text-lg text-gray-600">
+                  We'll use this to keep in touch
+                </p>
+              </div>
+
+              <Form {...phoneForm}>
+                <form onSubmit={phoneForm.handleSubmit(handlePhoneSubmit)} className="space-y-4">
+                  <FormField
+                    control={phoneForm.control}
+                    name="phone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Input
+                            placeholder="Enter your phone number"
+                            type="tel"
+                            className="text-lg h-12"
+                            {...field}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <Button type="submit" className="w-full text-lg h-12">
+                    Continue
+                  </Button>
+                </form>
+              </Form>
+            </div>
+          )}
+        </div>
+      </div>
     );
   }
 
@@ -121,7 +228,7 @@ const Auth = () => {
         <div className="text-center">
           <h2 className="text-3xl font-bold text-gray-900">Welcome</h2>
           <p className="mt-2 text-sm text-gray-600">
-            Sign in to your account or create a new one
+            Sign in to your account
           </p>
         </div>
         
@@ -151,7 +258,7 @@ const Auth = () => {
           <div className="mt-6 text-center">
             <Button
               variant="ghost"
-              onClick={() => setShowNewUserSplash(true)}
+              onClick={() => setShowNewUserFlow(true)}
               className="text-sm text-gray-600 hover:text-gray-900"
             >
               Don't have an account?
