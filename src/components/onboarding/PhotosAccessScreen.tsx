@@ -16,12 +16,25 @@ const PhotosAccessScreen = ({ onComplete }: PhotosAccessScreenProps) => {
   const { toast } = useToast();
 
   const handleComplete = async () => {
+    // First get the user session
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    
+    if (sessionError || !session?.user?.id) {
+      console.error('Error getting user session:', sessionError);
+      toast({
+        title: "Error",
+        description: "Unable to complete onboarding. Please try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
-      // Update the onboarding_completed flag
+      // Update the onboarding_completed flag with the confirmed user ID
       const { error } = await supabase
         .from('profiles')
         .update({ onboarding_completed: true })
-        .eq('id', (await supabase.auth.getUser()).data.user?.id);
+        .eq('id', session.user.id);
 
       if (error) throw error;
 
@@ -35,6 +48,11 @@ const PhotosAccessScreen = ({ onComplete }: PhotosAccessScreenProps) => {
       navigate('/');
     } catch (error) {
       console.error('Error completing onboarding:', error);
+      toast({
+        title: "Error",
+        description: "Unable to save your profile. Please try again.",
+        variant: "destructive",
+      });
       // Navigate anyway since this is just a mockup
       navigate('/');
     }
