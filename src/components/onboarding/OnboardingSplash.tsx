@@ -33,12 +33,31 @@ const OnboardingSplash = ({ onComplete }: OnboardingSplashProps) => {
         return;
       }
 
-      const { error } = await supabase
+      // First, get the current profile
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('onboarding_step')
+        .eq('id', user.id)
+        .single();
+
+      if (profileError) {
+        console.error('Profile fetch error:', profileError);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to fetch profile. Please try again.",
+        });
+        return;
+      }
+
+      // Update the onboarding step
+      const { error: updateError } = await supabase
         .from('profiles')
         .update({ onboarding_step: 2 })
         .eq('id', user.id);
 
-      if (error) {
+      if (updateError) {
+        console.error('Update error:', updateError);
         toast({
           variant: "destructive",
           title: "Error",
@@ -47,8 +66,10 @@ const OnboardingSplash = ({ onComplete }: OnboardingSplashProps) => {
         return;
       }
 
+      // If everything is successful, move to the next step
       setStep(2);
     } catch (error) {
+      console.error('Unexpected error:', error);
       toast({
         variant: "destructive",
         title: "Error",
