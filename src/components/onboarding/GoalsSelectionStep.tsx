@@ -2,6 +2,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { motion } from "framer-motion";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Goal {
   id: string;
@@ -25,6 +26,7 @@ interface GoalsSelectionStepProps {
 
 const GoalsSelectionStep = ({ onComplete }: GoalsSelectionStepProps) => {
   const [selectedGoals, setSelectedGoals] = React.useState<string[]>([]);
+  const isMobile = useIsMobile();
 
   const handleGoalToggle = (goalId: string) => {
     setSelectedGoals(current =>
@@ -35,41 +37,43 @@ const GoalsSelectionStep = ({ onComplete }: GoalsSelectionStepProps) => {
   };
 
   return (
-    <div className="fixed inset-0 flex flex-col items-center justify-center bg-assistant-background p-4">
-      <div className="w-full max-w-2xl space-y-8">
+    <div className="fixed inset-0 flex flex-col items-center justify-center bg-assistant-background p-2 md:p-4 overflow-y-auto">
+      <div className="w-full max-w-2xl space-y-4 md:space-y-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center space-y-4"
+          className="text-center space-y-2 md:space-y-4"
         >
-          <h1 className="text-3xl font-bold text-assistant-primary">What are your goals?</h1>
-          <p className="text-gray-600">Select all that apply to you</p>
+          <h1 className={`${isMobile ? 'text-2xl' : 'text-3xl'} font-bold text-assistant-primary`}>
+            What are your goals?
+          </h1>
+          <p className="text-gray-600 text-sm md:text-base">Select all that apply to you</p>
         </motion.div>
 
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
-          className="space-y-4"
+          className="space-y-2 md:space-y-4"
         >
           {GOALS.map((goal) => (
             <div
               key={goal.id}
-              className="flex items-start space-x-3 p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow"
+              className="flex items-start space-x-3 p-2 md:p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow"
             >
               <Checkbox
                 id={goal.id}
                 checked={selectedGoals.includes(goal.id)}
                 onCheckedChange={() => handleGoalToggle(goal.id)}
               />
-              <div className="space-y-1.5">
+              <div className="space-y-0.5 md:space-y-1.5">
                 <label
                   htmlFor={goal.id}
-                  className="text-lg font-medium cursor-pointer"
+                  className="text-sm md:text-lg font-medium cursor-pointer"
                 >
                   {goal.label}
                 </label>
-                <p className="text-sm text-gray-600">{goal.description}</p>
+                <p className="text-xs md:text-sm text-gray-600">{goal.description}</p>
               </div>
             </div>
           ))}
@@ -84,8 +88,8 @@ const GoalsSelectionStep = ({ onComplete }: GoalsSelectionStepProps) => {
           <Button
             onClick={() => onComplete(selectedGoals)}
             disabled={selectedGoals.length === 0}
-            size="lg"
-            className="mt-8"
+            size={isMobile ? "default" : "lg"}
+            className="mt-4"
           >
             Continue
           </Button>
