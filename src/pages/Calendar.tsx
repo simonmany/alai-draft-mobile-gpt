@@ -40,7 +40,7 @@ const CalendarPage = () => {
   };
 
   const renderDayView = () => (
-    <ScrollArea className="h-[calc(100vh-12rem)] w-full border rounded-lg p-4">
+    <ScrollArea className="h-[calc(100vh-16rem)] w-full border rounded-lg p-4">
       <div className="min-w-[300px]">
         {hours.map((hour, index) => (
           <div key={hour} className="relative min-h-[60px] border-t border-gray-200">
@@ -67,7 +67,7 @@ const CalendarPage = () => {
   );
 
   const renderWeekView = () => (
-    <ScrollArea className="h-[calc(100vh-12rem)] w-full border rounded-lg">
+    <ScrollArea className="h-[calc(100vh-16rem)] w-full border rounded-lg">
       <div className="min-w-[800px]">
         <div className="grid grid-cols-[100px_repeat(7,1fr)] gap-4">
           <div className="sticky top-0 z-10 bg-white"></div>
@@ -120,7 +120,7 @@ const CalendarPage = () => {
           Day: ({ date: dayDate, ...props }) => {
             const dayEvents = getEventsForDay(dayDate);
             return (
-              <div className="relative w-full h-full min-h-[100px] p-1">
+              <div className="relative w-full h-full min-h-[60px] p-1">
                 <button {...props} className="w-full h-full">
                   <time dateTime={dayDate.toISOString()} className="absolute top-1 left-1">
                     {format(dayDate, 'd')}
@@ -160,26 +160,28 @@ const CalendarPage = () => {
   }
 
   return (
-    <div className="container mx-auto p-4 space-y-4">
-      <h1 className="text-xl font-bold text-gray-900">
+    <div className="container mx-auto px-4 h-[calc(100vh-8rem)] flex flex-col">
+      <h1 className="text-xl font-bold text-gray-900 mb-4">
         {format(date, 'EEEE, MMMM d, yyyy')}
       </h1>
       
-      <Tabs defaultValue="day" className="w-full">
-        <TabsList className="w-full grid grid-cols-3">
+      <Tabs defaultValue="day" className="flex-1 flex flex-col">
+        <TabsList className="w-full grid grid-cols-3 mb-4">
           <TabsTrigger value="day">Day</TabsTrigger>
           <TabsTrigger value="week">Week</TabsTrigger>
           <TabsTrigger value="month">Month</TabsTrigger>
         </TabsList>
-        <TabsContent value="day" className="mt-4">
-          {renderDayView()}
-        </TabsContent>
-        <TabsContent value="week" className="mt-4">
-          {renderWeekView()}
-        </TabsContent>
-        <TabsContent value="month" className="mt-4">
-          {renderMonthView()}
-        </TabsContent>
+        <div className="flex-1 overflow-hidden">
+          <TabsContent value="day" className="h-full">
+            {renderDayView()}
+          </TabsContent>
+          <TabsContent value="week" className="h-full">
+            {renderWeekView()}
+          </TabsContent>
+          <TabsContent value="month" className="h-full">
+            {renderMonthView()}
+          </TabsContent>
+        </div>
       </Tabs>
     </div>
   );
