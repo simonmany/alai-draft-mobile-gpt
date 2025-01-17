@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Auth as SupabaseAuth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
@@ -10,28 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 const Auth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-
-  const getErrorMessage = (error: AuthError) => {
-    if (error instanceof AuthApiError) {
-      // Handle specific error codes first
-      switch (error.code) {
-        case 'invalid_credentials':
-          return 'Invalid email or password. Please check your credentials and try again.';
-        case 'email_not_confirmed':
-          return 'Please verify your email address before signing in.';
-        case 'user_not_found':
-          return 'No account exists with this email address. Please sign up first.';
-        case 'invalid_grant':
-          return 'Invalid login credentials.';
-        case 'validation_failed':
-          return 'Please enter both email and password.';
-        default:
-          // For other cases, return the original message
-          return error.message;
-      }
-    }
-    return error.message;
-  };
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     // Check if user is already logged in
@@ -51,14 +30,12 @@ const Auth = () => {
           title: "Welcome!",
           description: "You have successfully signed in.",
         });
+      } else if (event === 'SIGNED_OUT') {
+        setError(null);
       } else if (event === 'USER_UPDATED') {
         const { data, error } = await supabase.auth.getSession();
         if (error) {
-          toast({
-            variant: "destructive",
-            title: "Error",
-            description: getErrorMessage(error),
-          });
+          setError(getErrorMessage(error));
         }
       }
     });
@@ -67,6 +44,25 @@ const Auth = () => {
       subscription.unsubscribe();
     };
   }, [navigate, toast]);
+
+  const getErrorMessage = (error: AuthError) => {
+    if (error instanceof AuthApiError) {
+      // Handle specific error codes
+      switch (error.status) {
+        case 400:
+          return "Please enter both email and password.";
+        case 401:
+          return "Invalid email or password. Please try again.";
+        case 422:
+          return "Invalid email format. Please check your email address.";
+        case 429:
+          return "Too many attempts. Please try again later.";
+        default:
+          return error.message;
+      }
+    }
+    return error.message;
+  };
 
   return (
     <div className="min-h-screen bg-assistant-background flex items-center justify-center p-4">
@@ -79,6 +75,12 @@ const Auth = () => {
         </div>
         
         <div className="bg-white p-8 rounded-lg shadow-md">
+          {error && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+          
           <SupabaseAuth 
             supabaseClient={supabase}
             appearance={{
