@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -11,6 +12,7 @@ interface Contact {
 
 const ContactsOrbit = () => {
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
   
   // Sample contacts data - in a real app, this would come from a database
   const contacts: Contact[] = [
@@ -28,6 +30,16 @@ const ContactsOrbit = () => {
     return 180;
   };
 
+  const handleContactClick = (contact: Contact) => {
+    navigate(`/contacts/${contact.id}`, { 
+      state: { 
+        id: contact.id,
+        name: contact.name,
+        imageUrl: contact.imageUrl
+      } 
+    });
+  };
+
   return (
     <div className="relative h-[400px] md:h-[600px] w-full flex items-center justify-center bg-assistant-background rounded-lg p-4 md:p-8">
       {/* Center user avatar */}
@@ -43,8 +55,8 @@ const ContactsOrbit = () => {
       {/* Orbiting contacts */}
       {contacts.map((contact, index) => {
         const angle = (index * (360 / contacts.length)) * (Math.PI / 180);
-        const radius = getRadius(); // Orbit radius in pixels
-        const duration = 20 + index * 5; // Varying orbit durations
+        const radius = getRadius();
+        const duration = 20 + index * 5;
         
         const orbitStyle = {
           position: 'absolute',
@@ -66,7 +78,11 @@ const ContactsOrbit = () => {
 
         return (
           <div key={contact.id} className="absolute" style={orbitStyle}>
-            <div style={contactStyle} className="transition-transform hover:scale-110">
+            <div 
+              style={contactStyle} 
+              className="transition-transform hover:scale-110 cursor-pointer"
+              onClick={() => handleContactClick(contact)}
+            >
               <Avatar className="h-12 w-12 md:h-16 md:w-16 border-2 border-assistant-secondary shadow-md">
                 <AvatarFallback className="bg-assistant-muted text-sm">
                   {contact.name.split(' ').map(n => n[0]).join('')}

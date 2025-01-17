@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ContactsOrbit from "@/components/ContactsOrbit";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
@@ -5,37 +6,49 @@ import { User } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 const Contacts = () => {
+  const navigate = useNavigate();
+
   // Sample groups data - in a real app, this would come from a database
   const groups = [
     {
       name: "Inner Orbit",
       contacts: [
-        { name: "Sarah Johnson", status: "Close Friend" },
-        { name: "Mike Peters", status: "Family" },
+        { id: 7, name: "Sarah Johnson", status: "Close Friend" },
+        { id: 8, name: "Mike Peters", status: "Family" },
       ]
     },
     {
       name: "College Friends",
       contacts: [
-        { name: "Emma Wilson", status: "Roommate" },
-        { name: "James Brown", status: "Study Group" },
+        { id: 9, name: "Emma Wilson", status: "Roommate" },
+        { id: 10, name: "James Brown", status: "Study Group" },
       ]
     },
     {
       name: "Work Friends",
       contacts: [
-        { name: "Lisa Chen", status: "Team Lead" },
-        { name: "Alex Kim", status: "Department" },
+        { id: 11, name: "Lisa Chen", status: "Team Lead" },
+        { id: 12, name: "Alex Kim", status: "Department" },
       ]
     },
     {
       name: "Golf Friends",
       contacts: [
-        { name: "Tom Wilson", status: "Club Member" },
-        { name: "David Park", status: "Weekly Game" },
+        { id: 13, name: "Tom Wilson", status: "Club Member" },
+        { id: 14, name: "David Park", status: "Weekly Game" },
       ]
     }
   ];
+
+  const handleContactClick = (contact: { id: number; name: string; status: string }) => {
+    navigate(`/contacts/${contact.id}`, { 
+      state: { 
+        id: contact.id,
+        name: contact.name,
+        status: contact.status
+      } 
+    });
+  };
 
   return (
     <div className="container mx-auto space-y-6">
@@ -63,7 +76,11 @@ const Contacts = () => {
               </TableHeader>
               <TableBody>
                 {group.contacts.map((contact) => (
-                  <TableRow key={contact.name}>
+                  <TableRow 
+                    key={contact.name}
+                    className="cursor-pointer hover:bg-gray-50"
+                    onClick={() => handleContactClick(contact)}
+                  >
                     <TableCell className="flex items-center gap-2">
                       <Avatar className="h-8 w-8">
                         <AvatarFallback className="bg-assistant-muted">
