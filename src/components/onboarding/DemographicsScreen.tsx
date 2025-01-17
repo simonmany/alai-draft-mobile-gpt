@@ -13,6 +13,7 @@ import AlCharacter from "./AlCharacter";
 import CalendarContactsScreen from "./CalendarContactsScreen";
 import SocialLinksScreen from "./SocialLinksScreen";
 import PhotosAccessScreen from "./PhotosAccessScreen";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface DemographicsScreenProps {
   onComplete: () => void;
@@ -69,6 +70,7 @@ const DemographicsScreen = ({ onComplete }: DemographicsScreenProps) => {
     occupation: "",
     dietaryRestrictions: ""
   });
+  const isMobile = useIsMobile();
 
   const handleInputChange = (field: string, value: string | string[]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -101,26 +103,30 @@ const DemographicsScreen = ({ onComplete }: DemographicsScreenProps) => {
   }
 
   return (
-    <div className="fixed inset-0 flex flex-col items-center justify-center bg-assistant-background p-4">
-      <div className="w-full max-w-2xl space-y-8">
-        <AlCharacter isNodding={isNodding} />
+    <div className="fixed inset-0 flex flex-col items-center justify-center bg-assistant-background p-2 md:p-4 overflow-y-auto">
+      <div className="w-full max-w-2xl space-y-4 md:space-y-8">
+        <div className={isMobile ? "scale-75 -mb-4" : ""}>
+          <AlCharacter isNodding={isNodding} />
+        </div>
         
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center space-y-4"
+          className="text-center space-y-2 md:space-y-4"
         >
-          <h1 className="text-3xl font-bold text-assistant-primary">Now let's get through the details...</h1>
+          <h1 className={`${isMobile ? 'text-2xl' : 'text-3xl'} font-bold text-assistant-primary`}>
+            Now let's get through the details...
+          </h1>
         </motion.div>
 
-        <div className="space-y-6">
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Age Range</label>
+        <div className="space-y-3 md:space-y-6">
+          <div className="space-y-1 md:space-y-2">
+            <label className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium`}>Age Range</label>
             <Select
               value={formData.age}
               onValueChange={(value) => handleInputChange('age', value)}
             >
-              <SelectTrigger>
+              <SelectTrigger className={isMobile ? "h-8 text-sm" : ""}>
                 <SelectValue placeholder="Select your age range" />
               </SelectTrigger>
               <SelectContent>
@@ -133,23 +139,24 @@ const DemographicsScreen = ({ onComplete }: DemographicsScreenProps) => {
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Location (City, US)</label>
+          <div className="space-y-1 md:space-y-2">
+            <label className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium`}>Location (City, US)</label>
             <Input
               type="text"
               placeholder="Enter your city"
               value={formData.location}
               onChange={(e) => handleInputChange('location', e.target.value)}
+              className={isMobile ? "h-8 text-sm" : ""}
             />
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Languages</label>
+          <div className="space-y-1 md:space-y-2">
+            <label className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium`}>Languages</label>
             <Select
               value={formData.languages[0] || ""}
               onValueChange={(value) => handleInputChange('languages', [value])}
             >
-              <SelectTrigger>
+              <SelectTrigger className={isMobile ? "h-8 text-sm" : ""}>
                 <SelectValue placeholder="Select languages you speak" />
               </SelectTrigger>
               <SelectContent>
@@ -162,13 +169,13 @@ const DemographicsScreen = ({ onComplete }: DemographicsScreenProps) => {
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Relationship Status</label>
+          <div className="space-y-1 md:space-y-2">
+            <label className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium`}>Relationship Status</label>
             <Select
               value={formData.relationshipStatus}
               onValueChange={(value) => handleInputChange('relationshipStatus', value)}
             >
-              <SelectTrigger>
+              <SelectTrigger className={isMobile ? "h-8 text-sm" : ""}>
                 <SelectValue placeholder="Select your relationship status" />
               </SelectTrigger>
               <SelectContent>
@@ -181,13 +188,13 @@ const DemographicsScreen = ({ onComplete }: DemographicsScreenProps) => {
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Gender</label>
+          <div className="space-y-1 md:space-y-2">
+            <label className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium`}>Gender</label>
             <Select
               value={formData.gender}
               onValueChange={(value) => handleInputChange('gender', value)}
             >
-              <SelectTrigger>
+              <SelectTrigger className={isMobile ? "h-8 text-sm" : ""}>
                 <SelectValue placeholder="Select your gender" />
               </SelectTrigger>
               <SelectContent>
@@ -200,23 +207,25 @@ const DemographicsScreen = ({ onComplete }: DemographicsScreenProps) => {
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Occupation</label>
+          <div className="space-y-1 md:space-y-2">
+            <label className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium`}>Occupation</label>
             <Input
               type="text"
               placeholder="Enter your occupation"
               value={formData.occupation}
               onChange={(e) => handleInputChange('occupation', e.target.value)}
+              className={isMobile ? "h-8 text-sm" : ""}
             />
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Dietary Restrictions</label>
+          <div className="space-y-1 md:space-y-2">
+            <label className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium`}>Dietary Restrictions</label>
             <Input
               type="text"
               placeholder="Any dietary restrictions?"
               value={formData.dietaryRestrictions}
               onChange={(e) => handleInputChange('dietaryRestrictions', e.target.value)}
+              className={isMobile ? "h-8 text-sm" : ""}
             />
           </div>
         </div>
@@ -224,8 +233,8 @@ const DemographicsScreen = ({ onComplete }: DemographicsScreenProps) => {
         <Button
           onClick={handleContinue}
           disabled={!formData.age || !formData.location}
-          size="lg"
-          className="w-full mt-8"
+          size={isMobile ? "default" : "lg"}
+          className="w-full mt-4"
         >
           Continue
         </Button>

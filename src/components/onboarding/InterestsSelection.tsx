@@ -5,6 +5,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Check } from "lucide-react";
 import AlCharacter from "./AlCharacter";
 import DemographicsScreen from "./DemographicsScreen";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const commonInterests = [
   "Playing basketball",
@@ -38,6 +39,7 @@ const InterestsSelection = ({ onComplete }: InterestsSelectionProps) => {
   const [isNodding, setIsNodding] = useState(false);
   const [search, setSearch] = useState("");
   const [showDemographics, setShowDemographics] = useState(false);
+  const isMobile = useIsMobile();
 
   const handleSelectInterest = (interest: string) => {
     if (selectedInterests.includes(interest)) {
@@ -62,27 +64,34 @@ const InterestsSelection = ({ onComplete }: InterestsSelectionProps) => {
   }
 
   return (
-    <div className="fixed inset-0 flex flex-col items-center justify-center bg-assistant-background p-4">
-      <div className="w-full max-w-2xl space-y-8">
-        <AlCharacter isNodding={isNodding} />
+    <div className="fixed inset-0 flex flex-col items-center justify-center bg-assistant-background p-2 md:p-4 overflow-y-auto">
+      <div className="w-full max-w-2xl space-y-4 md:space-y-8">
+        <div className={isMobile ? "scale-75 -mb-4" : ""}>
+          <AlCharacter isNodding={isNodding} />
+        </div>
         
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center space-y-4"
+          className="text-center space-y-2 md:space-y-4"
         >
-          <h1 className="text-3xl font-bold text-assistant-primary">What do you enjoy?</h1>
-          <p className="text-gray-600">Select or type your interests and hobbies</p>
+          <h1 className={`${isMobile ? 'text-2xl' : 'text-3xl'} font-bold text-assistant-primary`}>
+            What do you enjoy?
+          </h1>
+          <p className={`text-gray-600 ${isMobile ? 'text-sm' : 'text-base'}`}>
+            Select or type your interests and hobbies
+          </p>
         </motion.div>
 
-        <div className="space-y-4">
+        <div className="space-y-2 md:space-y-4">
           <Command className="rounded-lg border shadow-md">
             <CommandInput 
               placeholder="Type or search interests..." 
               value={search}
               onValueChange={setSearch}
+              className={isMobile ? "h-9" : ""}
             />
-            <CommandList>
+            <CommandList className={isMobile ? "max-h-[30vh]" : "max-h-[40vh]"}>
               <CommandEmpty>No interests found.</CommandEmpty>
               <CommandGroup>
                 {filteredInterests.map((interest) => (
@@ -90,7 +99,7 @@ const InterestsSelection = ({ onComplete }: InterestsSelectionProps) => {
                     key={interest}
                     value={interest}
                     onSelect={() => handleSelectInterest(interest)}
-                    className="cursor-pointer"
+                    className={`cursor-pointer ${isMobile ? 'py-1.5' : 'py-2'}`}
                   >
                     <div className="flex items-center gap-2">
                       <div className={`flex h-4 w-4 items-center justify-center rounded-sm border ${
@@ -100,7 +109,7 @@ const InterestsSelection = ({ onComplete }: InterestsSelectionProps) => {
                           <Check className="h-3 w-3 text-white" />
                         )}
                       </div>
-                      <span>{interest}</span>
+                      <span className={isMobile ? "text-sm" : ""}>{interest}</span>
                     </div>
                   </CommandItem>
                 ))}
@@ -108,11 +117,13 @@ const InterestsSelection = ({ onComplete }: InterestsSelectionProps) => {
             </CommandList>
           </Command>
 
-          <div className="flex flex-wrap gap-2 mt-4">
+          <div className="flex flex-wrap gap-1.5 md:gap-2">
             {selectedInterests.map((interest) => (
               <div
                 key={interest}
-                className="bg-assistant-muted text-assistant-primary px-3 py-1 rounded-full text-sm"
+                className={`bg-assistant-muted text-assistant-primary px-2 md:px-3 py-0.5 md:py-1 rounded-full ${
+                  isMobile ? 'text-xs' : 'text-sm'
+                }`}
               >
                 {interest}
               </div>
@@ -123,8 +134,8 @@ const InterestsSelection = ({ onComplete }: InterestsSelectionProps) => {
         <Button
           onClick={handleContinue}
           disabled={selectedInterests.length === 0}
-          size="lg"
-          className="w-full mt-8"
+          size={isMobile ? "default" : "lg"}
+          className="w-full mt-4"
         >
           Continue
         </Button>
