@@ -19,9 +19,33 @@ const Dashboard = () => {
   const navigate = useNavigate();
 
   const memories = [
-    { id: 1, imageUrl: "https://images.unsplash.com/photo-1582562124811-c09040d0a901", title: "Game Night", date: "Last Week" },
-    { id: 2, imageUrl: "https://images.unsplash.com/photo-1721322800607-8c38375eef04", title: "Movie Night", date: "2 Weeks Ago" },
-    { id: 3, imageUrl: "https://images.unsplash.com/photo-1466721591366-2d5fba72006d", title: "Hiking Trip", date: "Last Month" },
+    { 
+      id: 1, 
+      imageUrl: "https://images.unsplash.com/photo-1582562124811-c09040d0a901", 
+      title: "Game Night", 
+      date: "Last Week",
+      location: "Sarah's Place",
+      attendees: ["Sarah", "Mike", "David"],
+      notes: ""
+    },
+    { 
+      id: 2, 
+      imageUrl: "https://images.unsplash.com/photo-1721322800607-8c38375eef04", 
+      title: "Movie Night", 
+      date: "2 Weeks Ago",
+      location: "AMC Theater",
+      attendees: ["John", "Emma", "Alex"],
+      notes: ""
+    },
+    { 
+      id: 3, 
+      imageUrl: "https://images.unsplash.com/photo-1466721591366-2d5fba72006d", 
+      title: "Hiking Trip", 
+      date: "Last Month",
+      location: "Mount Tamalpais",
+      attendees: ["Lisa", "Tom", "Rachel"],
+      notes: ""
+    },
   ];
 
   const getNextEvent = () => {
