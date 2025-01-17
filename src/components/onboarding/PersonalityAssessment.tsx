@@ -87,16 +87,20 @@ const PersonalityAssessment = () => {
     } else {
       setIsSubmitting(true);
       try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error("No user found");
+
         // Save personality assessment
         const { error } = await supabase
           .from('personality_assessment')
           .insert({
+            user_id: user.id,
             social_energy: answers.social_energy,
             social_style: answers.social_style,
             planning_style: answers.planning_style,
-            social_energy_notes: notes.social_energy_notes,
-            social_style_notes: notes.social_style_notes,
-            planning_style_notes: notes.planning_style_notes,
+            social_energy_notes: notes.social_energy_notes || null,
+            social_style_notes: notes.social_style_notes || null,
+            planning_style_notes: notes.planning_style_notes || null,
           });
 
         if (error) throw error;
@@ -105,7 +109,7 @@ const PersonalityAssessment = () => {
         const { error: profileError } = await supabase
           .from('profiles')
           .update({ onboarding_step: 5 })
-          .eq('id', (await supabase.auth.getUser()).data.user?.id);
+          .eq('id', user.id);
 
         if (profileError) throw profileError;
 
