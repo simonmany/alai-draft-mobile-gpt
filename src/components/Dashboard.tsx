@@ -50,7 +50,7 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-6">
-      <DashboardHeader />
+      <DashboardHeader onPlusClick={() => setIsPlanningOpen(true)} />
 
       <PlanningDialog
         isOpen={isPlanningOpen}
