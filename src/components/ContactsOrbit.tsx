@@ -1,6 +1,7 @@
 import React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface Contact {
   id: number;
@@ -9,6 +10,8 @@ interface Contact {
 }
 
 const ContactsOrbit = () => {
+  const isMobile = useIsMobile();
+  
   // Sample contacts data - in a real app, this would come from a database
   const contacts: Contact[] = [
     { id: 1, name: "Sarah Johnson" },
@@ -19,13 +22,19 @@ const ContactsOrbit = () => {
     { id: 6, name: "Alex Kim" },
   ];
 
+  // Adjust radius based on screen size
+  const getRadius = () => {
+    if (isMobile) return 120;
+    return 180;
+  };
+
   return (
-    <div className="relative h-[600px] w-full flex items-center justify-center bg-assistant-background rounded-lg p-8">
+    <div className="relative h-[400px] md:h-[600px] w-full flex items-center justify-center bg-assistant-background rounded-lg p-4 md:p-8">
       {/* Center user avatar */}
       <div className="absolute z-10 transform -translate-x-1/2 -translate-y-1/2 left-1/2 top-1/2">
-        <Avatar className="h-24 w-24 border-4 border-assistant-primary shadow-lg">
+        <Avatar className="h-16 w-16 md:h-24 md:w-24 border-4 border-assistant-primary shadow-lg">
           <AvatarFallback className="bg-assistant-muted">
-            <User className="h-12 w-12 text-assistant-primary" />
+            <User className="h-8 w-8 md:h-12 md:w-12 text-assistant-primary" />
           </AvatarFallback>
         </Avatar>
         <div className="mt-2 text-center font-medium text-gray-900">You</div>
@@ -34,7 +43,7 @@ const ContactsOrbit = () => {
       {/* Orbiting contacts */}
       {contacts.map((contact, index) => {
         const angle = (index * (360 / contacts.length)) * (Math.PI / 180);
-        const radius = 180; // Orbit radius in pixels
+        const radius = getRadius(); // Orbit radius in pixels
         const duration = 20 + index * 5; // Varying orbit durations
         
         const orbitStyle = {
@@ -58,12 +67,12 @@ const ContactsOrbit = () => {
         return (
           <div key={contact.id} className="absolute" style={orbitStyle}>
             <div style={contactStyle} className="transition-transform hover:scale-110">
-              <Avatar className="h-16 w-16 border-2 border-assistant-secondary shadow-md">
-                <AvatarFallback className="bg-assistant-muted">
+              <Avatar className="h-12 w-12 md:h-16 md:w-16 border-2 border-assistant-secondary shadow-md">
+                <AvatarFallback className="bg-assistant-muted text-sm">
                   {contact.name.split(' ').map(n => n[0]).join('')}
                 </AvatarFallback>
               </Avatar>
-              <div className="mt-2 text-sm text-center font-medium text-gray-700">
+              <div className="mt-2 text-xs md:text-sm text-center font-medium text-gray-700">
                 {contact.name}
               </div>
             </div>

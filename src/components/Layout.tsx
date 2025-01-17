@@ -51,7 +51,7 @@ const Layout = () => {
       </div>
 
       {/* Mobile menu */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 md:hidden">
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 md:hidden z-50">
         <nav className="flex justify-around p-2">
           {navigation.map((item) => {
             const isActive = location.pathname === item.href;
