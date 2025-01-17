@@ -39,17 +39,20 @@ const AuthUI = ({ error, onNewUser }: AuthUIProps) => {
                 },
               },
             },
+            className: {
+              anchor: 'hidden',
+            },
           }}
           providers={[]}
         />
 
         <div className="mt-6 text-center">
           <Button
-            variant="ghost"
+            variant="link"
             onClick={onNewUser}
             className="text-sm text-gray-600 hover:text-gray-900"
           >
-            Don't have an account?
+            Don't have an account? Sign up
           </Button>
         </div>
       </div>
