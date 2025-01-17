@@ -176,7 +176,7 @@ const PersonalityAssessment = () => {
         size="lg"
         className="w-full mt-8"
       >
-        {isSubmitting ? "Saving..." : "Continue"}
+        {isSubmitting ? "Saving..." : "Finish!"}
       </Button>
     </div>
   );
