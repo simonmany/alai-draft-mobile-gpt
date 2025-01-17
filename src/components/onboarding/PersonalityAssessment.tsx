@@ -89,14 +89,17 @@ const PersonalityAssessment = () => {
     } else {
       setIsSubmitting(true);
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error("No user found");
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError) throw sessionError;
+        if (!session?.user) throw new Error("No user found");
+
+        const user_id = session.user.id;
 
         // Save personality assessment
         const { error } = await supabase
           .from('personality_assessment')
           .insert({
-            user_id: user.id,
+            user_id,
             social_energy: answers.social_energy,
             social_style: answers.social_style,
             planning_style: answers.planning_style,
@@ -111,7 +114,7 @@ const PersonalityAssessment = () => {
         const { error: profileError } = await supabase
           .from('profiles')
           .update({ onboarding_step: 4 })
-          .eq('id', user.id);
+          .eq('id', user_id);
 
         if (profileError) throw profileError;
 
@@ -185,7 +188,7 @@ const PersonalityAssessment = () => {
         size="lg"
         className="w-full mt-8"
       >
-        {isSubmitting ? "Saving..." : "Finish!"}
+        {isSubmitting ? "Saving..." : currentQuestion < questions.length - 1 ? "Continue" : "Finish!"}
       </Button>
     </div>
   );
