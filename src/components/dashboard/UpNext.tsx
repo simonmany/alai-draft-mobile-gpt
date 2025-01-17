@@ -1,6 +1,6 @@
 import { Event } from "@/types/dashboard";
 import { Card } from "@/components/ui/card";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Calendar } from "lucide-react";
 import {
   Popover,
   PopoverContent,
@@ -18,9 +18,10 @@ interface UpNextProps {
   getNextEvent: () => Event | undefined;
   getNextAvailableSlot: () => string;
   onPlanningClick: () => void;
+  onCalendarClick: () => void;
 }
 
-const UpNext = ({ getNextEvent, getNextAvailableSlot, onPlanningClick }: UpNextProps) => {
+const UpNext = ({ getNextEvent, getNextAvailableSlot, onPlanningClick, onCalendarClick }: UpNextProps) => {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
   return (
@@ -29,18 +30,13 @@ const UpNext = ({ getNextEvent, getNextAvailableSlot, onPlanningClick }: UpNextP
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-900">Up Next:</h2>
           {getNextEvent() && (
-            <Popover>
-              <PopoverTrigger>
-                <ArrowRight className="h-5 w-5 text-assistant-primary hover:text-assistant-primary/80" />
-              </PopoverTrigger>
-              <PopoverContent>
-                <div className="space-y-2">
-                  <h3 className="font-medium">{getNextEvent()?.title}</h3>
-                  <p className="text-sm text-gray-500">Time: {getNextEvent()?.time}</p>
-                  <p className="text-sm text-gray-500">Type: {getNextEvent()?.type}</p>
-                </div>
-              </PopoverContent>
-            </Popover>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-500">Calendar</span>
+              <ArrowRight 
+                className="h-5 w-5 text-assistant-primary hover:text-assistant-primary/80 cursor-pointer" 
+                onClick={onCalendarClick}
+              />
+            </div>
           )}
         </div>
         

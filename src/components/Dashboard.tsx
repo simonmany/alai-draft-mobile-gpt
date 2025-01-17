@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import PlanningDialog from "./PlanningDialog";
 import DashboardHeader from "./dashboard/DashboardHeader";
 import { useGoogleCalendar } from "@/hooks/useGoogleCalendar";
@@ -15,6 +16,7 @@ import WeeklyGoals from "./dashboard/WeeklyGoals";
 const Dashboard = () => {
   const [isPlanningOpen, setIsPlanningOpen] = useState(false);
   const { googleEvents } = useGoogleCalendar();
+  const navigate = useNavigate();
 
   const memories = [
     { id: 1, imageUrl: "https://images.unsplash.com/photo-1582562124811-c09040d0a901", title: "Game Night", date: "Last Week" },
@@ -61,11 +63,12 @@ const Dashboard = () => {
         getNextEvent={getNextEvent}
         getNextAvailableSlot={getNextAvailableSlot}
         onPlanningClick={() => setIsPlanningOpen(true)}
+        onCalendarClick={() => navigate('/calendar')}
       />
 
-      <Memories memories={memories} />
-
       <WeeklyGoals goals={goals} />
+
+      <Memories memories={memories} />
     </div>
   );
 };
