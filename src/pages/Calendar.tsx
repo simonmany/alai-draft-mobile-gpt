@@ -2,17 +2,20 @@ import React, { useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Calendar } from "@/components/ui/calendar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 import { addHours, format, startOfToday, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay } from "date-fns";
 import { upcomingEvents } from "@/data/dashboardData";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useGoogleCalendar } from "@/hooks/useGoogleCalendar";
 import type { Event } from "@/types/dashboard";
 
 const CalendarPage = () => {
   const today = new Date();
   const [date, setDate] = useState<Date>(today);
   const isMobile = useIsMobile();
+  const { handleGoogleCalendarSync } = useGoogleCalendar();
 
-  // Generate hours for the day view
   const hours = Array.from({ length: 24 }, (_, i) => {
     const time = addHours(startOfToday(), i);
     return format(time, 'h:mm a');
@@ -149,9 +152,20 @@ const CalendarPage = () => {
   if (!isMobile) {
     return (
       <div className="container mx-auto p-4 space-y-8">
-        <h1 className="text-2xl font-bold text-gray-900">
-          {format(date, 'EEEE, MMMM d, yyyy')}
-        </h1>
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold text-gray-900">
+            {format(date, 'EEEE, MMMM d, yyyy')}
+          </h1>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleGoogleCalendarSync}
+            className="gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Add Calendars
+          </Button>
+        </div>
         {renderDayView()}
         {renderWeekView()}
         {renderMonthView()}
@@ -161,9 +175,20 @@ const CalendarPage = () => {
 
   return (
     <div className="container mx-auto px-4 h-[calc(100vh-8rem)] flex flex-col">
-      <h1 className="text-xl font-bold text-gray-900 mb-4">
-        {format(date, 'EEEE, MMMM d, yyyy')}
-      </h1>
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-xl font-bold text-gray-900">
+          {format(date, 'EEEE, MMMM d, yyyy')}
+        </h1>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleGoogleCalendarSync}
+          className="gap-2"
+        >
+          <Plus className="h-4 w-4" />
+          Add Calendars
+        </Button>
+      </div>
       
       <Tabs defaultValue="day" className="flex-1 flex flex-col">
         <TabsList className="w-full grid grid-cols-3 mb-4">
