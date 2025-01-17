@@ -14,6 +14,13 @@ const Layout = () => {
     { name: "You", href: "/goals", icon: User },
   ];
 
+  const handlePlanningClick = () => {
+    const planButton = document.querySelector('button[aria-label="Let\'s Plan Something"]') as HTMLButtonElement;
+    if (planButton) {
+      planButton.click();
+    }
+  };
+
   return (
     <div className="min-h-screen bg-assistant-background">
       {/* Sidebar for desktop */}
@@ -33,7 +40,7 @@ const Layout = () => {
                       to="#"
                       onClick={(e) => {
                         e.preventDefault();
-                        document.querySelector('button[aria-label="Let\'s Plan Something"]')?.click();
+                        handlePlanningClick();
                       }}
                       className="flex items-center justify-center py-4"
                     >
@@ -76,9 +83,7 @@ const Layout = () => {
               return (
                 <button
                   key="action"
-                  onClick={() => {
-                    document.querySelector('button[aria-label="Let\'s Plan Something"]')?.click();
-                  }}
+                  onClick={handlePlanningClick}
                   className="flex flex-col items-center px-2 py-1"
                 >
                   <item.icon className="h-8 w-8 text-assistant-primary" />
