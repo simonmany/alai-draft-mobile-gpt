@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import PlanningDialog from "./PlanningDialog";
 import DashboardHeader from "./dashboard/DashboardHeader";
 import { useGoogleCalendar } from "@/hooks/useGoogleCalendar";
@@ -9,14 +9,26 @@ import {
   recentContacts,
 } from "@/data/dashboardData";
 import { Card } from "./ui/card";
-import { Calendar } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "./ui/carousel";
+import { 
+  Carousel, 
+  CarouselContent, 
+  CarouselItem, 
+  CarouselNext, 
+  CarouselPrevious 
+} from "./ui/carousel";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import type { Event, Contact } from "@/types/dashboard";
 
 const Dashboard = () => {
   const [isPlanningOpen, setIsPlanningOpen] = useState(false);
   const { googleEvents } = useGoogleCalendar();
+  const [activeSlide, setActiveSlide] = useState(0);
 
   const getNextEvent = () => {
     const allEvents = [...upcomingEvents, ...googleEvents].sort((a, b) => {
@@ -48,9 +60,16 @@ const Dashboard = () => {
     { id: 3, imageUrl: "https://images.unsplash.com/photo-1466721591366-2d5fba72006d", title: "Hiking Trip", date: "Last Month" },
   ];
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveSlide((prev) => (prev + 1) % memories.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [memories.length]);
+
   return (
     <div className="space-y-6">
-      <DashboardHeader onPlanClick={() => setIsPlanningOpen(true)} />
+      <DashboardHeader />
 
       <PlanningDialog
         isOpen={isPlanningOpen}
@@ -59,48 +78,57 @@ const Dashboard = () => {
         contacts={recentContacts}
       />
 
-      {/* Next Event and Available Slot */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card className="p-6">
+      {/* Up Next and Available Slot */}
+      <Card className="p-6">
+        <div 
+          className="cursor-pointer"
+          onClick={() => setIsPlanningOpen(true)}
+        >
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">Your Next Event</h2>
-            <Link to="/calendar" className="text-assistant-primary hover:text-assistant-primary/80">
-              <Calendar className="h-5 w-5" />
-            </Link>
+            <h2 className="text-lg font-semibold text-gray-900">Up Next:</h2>
+            {getNextEvent() && (
+              <Popover>
+                <PopoverTrigger>
+                  <ArrowRight className="h-5 w-5 text-assistant-primary hover:text-assistant-primary/80" />
+                </PopoverTrigger>
+                <PopoverContent>
+                  <div className="space-y-2">
+                    <h3 className="font-medium">{getNextEvent()?.title}</h3>
+                    <p className="text-sm text-gray-500">Time: {getNextEvent()?.time}</p>
+                    <p className="text-sm text-gray-500">Type: {getNextEvent()?.type}</p>
+                    <p className="text-sm text-gray-500">Attendees: Sarah, Mike</p>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            )}
           </div>
-          {getNextEvent() ? (
+          
+          <div className="flex items-center space-x-3 p-2 rounded-md">
+            <div className={`w-2 h-2 rounded-full ${
+              getNextEvent()?.type === 'work' ? 'bg-assistant-primary' : 'bg-assistant-secondary'
+            }`} />
+            <div>
+              <p className="font-medium text-gray-900">{getNextEvent()?.title || "No upcoming events"}</p>
+              <p className="text-sm text-gray-500">{getNextEvent()?.time || "Schedule something!"}</p>
+            </div>
+          </div>
+
+          <div className="mt-4 pt-4 border-t">
             <div className="flex items-center space-x-3 p-2 rounded-md">
-              <div className={`w-2 h-2 rounded-full ${
-                getNextEvent()?.type === 'work' ? 'bg-assistant-primary' : 'bg-assistant-secondary'
-              }`} />
+              <div className="w-2 h-2 rounded-full bg-green-500" />
               <div>
-                <p className="font-medium text-gray-900">{getNextEvent()?.title}</p>
-                <p className="text-sm text-gray-500">{getNextEvent()?.time}</p>
+                <p className="font-medium text-gray-900">Next Available</p>
+                <p className="text-sm text-gray-500">{getNextAvailableSlot()}</p>
               </div>
             </div>
-          ) : (
-            <p className="text-gray-500">No upcoming events</p>
-          )}
-        </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">Next Available Slot</h2>
           </div>
-          <div className="flex items-center space-x-3 p-2 rounded-md">
-            <div className="w-2 h-2 rounded-full bg-green-500" />
-            <div>
-              <p className="font-medium text-gray-900">Available</p>
-              <p className="text-sm text-gray-500">{getNextAvailableSlot()}</p>
-            </div>
-          </div>
-        </Card>
-      </div>
+        </div>
+      </Card>
 
       {/* Memories Carousel */}
       <Card className="p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Memories with Friends</h2>
-        <Carousel className="w-full">
+        <Carousel className="w-full" selectedIndex={activeSlide}>
           <CarouselContent>
             {memories.map((memory) => (
               <CarouselItem key={memory.id} className="md:basis-1/2 lg:basis-1/3">
