@@ -81,7 +81,7 @@ const PersonalityAssessment = () => {
     if (currentQuestion < questions.length - 1) {
       setCurrentQuestion(prev => prev + 1);
     } else {
-      // Navigate to activities screen instead of showing interests
+      // Navigate to activities screen
       navigate("/activities");
     }
   };
