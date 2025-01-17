@@ -1,17 +1,17 @@
 import { useState } from "react";
 import { Link, useLocation, Outlet } from "react-router-dom";
-import { Calendar, Users, Activity, LayoutDashboard, Dumbbell } from "lucide-react";
+import { Calendar, Users, User, Home, Plus } from "lucide-react";
 
 const Layout = () => {
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navigation = [
-    { name: "Dashboard", href: "/", icon: LayoutDashboard },
+    { name: "Home", href: "/", icon: Home },
     { name: "Calendar", href: "/calendar", icon: Calendar },
+    { name: "", href: "#", icon: Plus, isAction: true },
     { name: "Contacts", href: "/contacts", icon: Users },
-    { name: "Activities", href: "/activities", icon: Dumbbell },
-    { name: "Goals", href: "/goals", icon: Activity },
+    { name: "You", href: "/goals", icon: User },
   ];
 
   return (
@@ -26,6 +26,23 @@ const Layout = () => {
             <nav className="flex-1 space-y-1 px-2">
               {navigation.map((item) => {
                 const isActive = location.pathname === item.href;
+                if (item.isAction) {
+                  return (
+                    <Link
+                      key={item.name}
+                      to="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        document.querySelector('button[aria-label="Let\'s Plan Something"]')?.click();
+                      }}
+                      className="flex items-center justify-center py-4"
+                    >
+                      <item.icon
+                        className="h-8 w-8 text-assistant-primary hover:text-assistant-primary/80"
+                      />
+                    </Link>
+                  );
+                }
                 return (
                   <Link
                     key={item.name}
@@ -55,6 +72,19 @@ const Layout = () => {
         <nav className="flex justify-around p-2">
           {navigation.map((item) => {
             const isActive = location.pathname === item.href;
+            if (item.isAction) {
+              return (
+                <button
+                  key="action"
+                  onClick={() => {
+                    document.querySelector('button[aria-label="Let\'s Plan Something"]')?.click();
+                  }}
+                  className="flex flex-col items-center px-2 py-1"
+                >
+                  <item.icon className="h-8 w-8 text-assistant-primary" />
+                </button>
+              );
+            }
             return (
               <Link
                 key={item.name}
