@@ -66,11 +66,6 @@ const Auth = () => {
         }
       } else if (event === 'SIGNED_OUT') {
         setError(null);
-      } else if (event === 'USER_UPDATED') {
-        const { data, error } = await supabase.auth.getSession();
-        if (error) {
-          setError(getErrorMessage(error));
-        }
       }
     });
 
@@ -98,52 +93,17 @@ const Auth = () => {
   };
 
   const handleEmailSubmit = async (values: EmailFormValues) => {
-    const { error } = await supabase.auth.signUp({
-      email: values.email,
-      password: "temporary-password",
-    });
-
-    if (error) {
-      setError(getErrorMessage(error));
-    } else {
-      setSignupStep('phone');
-    }
+    // For now, just proceed to phone step without storing email
+    setSignupStep('phone');
   };
 
   const handlePhoneSubmit = async (values: PhoneFormValues) => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session) {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ phone_number: values.phone })
-        .eq('id', session.user.id);
-
-      if (error) {
-        setError("Failed to save phone number");
-      } else {
-        setShowOnboarding(true);
-      }
-    }
+    // For testing purposes, just proceed to onboarding
+    setShowOnboarding(true);
   };
 
   const handleOnboardingComplete = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session) {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ onboarding_completed: true })
-        .eq('id', session.user.id);
-
-      if (error) {
-        toast({
-          title: "Error",
-          description: "Failed to complete onboarding",
-          variant: "destructive",
-        });
-      } else {
-        navigate("/");
-      }
-    }
+    navigate("/");
   };
 
   if (showOnboarding) {
