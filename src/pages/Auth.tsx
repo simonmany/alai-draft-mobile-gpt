@@ -13,34 +13,21 @@ const Auth = () => {
 
   const getErrorMessage = (error: AuthError) => {
     if (error instanceof AuthApiError) {
-      // Handle validation errors
-      if (error.message) {
-        try {
-          const errorBody = JSON.parse(error.message);
-          if (errorBody.code === "validation_failed") {
-            return "Please enter both email and password.";
-          }
-          if (errorBody.message) {
-            return errorBody.message;
-          }
-        } catch (e) {
-          // If JSON parsing fails, handle specific error codes
-          switch (error.code) {
-            case 'invalid_credentials':
-              return 'Invalid email or password. Please check your credentials and try again.';
-            case 'email_not_confirmed':
-              return 'Please verify your email address before signing in.';
-            case 'user_not_found':
-              return 'No account exists with this email address. Please sign up first.';
-            case 'invalid_grant':
-              return 'Invalid login credentials.';
-            default:
-              if (error.message.includes('valid email')) {
-                return 'Please enter a valid email address.';
-              }
-              return error.message;
-          }
-        }
+      // Handle specific error codes first
+      switch (error.code) {
+        case 'invalid_credentials':
+          return 'Invalid email or password. Please check your credentials and try again.';
+        case 'email_not_confirmed':
+          return 'Please verify your email address before signing in.';
+        case 'user_not_found':
+          return 'No account exists with this email address. Please sign up first.';
+        case 'invalid_grant':
+          return 'Invalid login credentials.';
+        case 'validation_failed':
+          return 'Please enter both email and password.';
+        default:
+          // For other cases, return the original message
+          return error.message;
       }
     }
     return error.message;
