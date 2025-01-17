@@ -142,6 +142,26 @@ const Auth = () => {
     }
   };
 
+  const handleOnboardingComplete = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ onboarding_completed: true })
+        .eq('id', session.user.id);
+
+      if (error) {
+        toast({
+          title: "Error",
+          description: "Failed to complete onboarding",
+          variant: "destructive",
+        });
+      } else {
+        navigate("/");
+      }
+    }
+  };
+
   if (showOnboarding) {
     return <OnboardingSplash onComplete={handleOnboardingComplete} />;
   }
