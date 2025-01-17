@@ -3,12 +3,43 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Image } from "lucide-react";
 import AlCharacter from "./AlCharacter";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 
 interface PhotosAccessScreenProps {
   onComplete: () => void;
 }
 
 const PhotosAccessScreen = ({ onComplete }: PhotosAccessScreenProps) => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleComplete = async () => {
+    try {
+      // Update the onboarding_completed flag
+      const { error } = await supabase
+        .from('profiles')
+        .update({ onboarding_completed: true })
+        .eq('id', (await supabase.auth.getUser()).data.user?.id);
+
+      if (error) throw error;
+
+      // Show success toast
+      toast({
+        title: "Welcome!",
+        description: "Your profile is all set up.",
+      });
+
+      // Navigate to the main app
+      navigate('/');
+    } catch (error) {
+      console.error('Error completing onboarding:', error);
+      // Navigate anyway since this is just a mockup
+      navigate('/');
+    }
+  };
+
   return (
     <div className="fixed inset-0 flex flex-col items-center justify-center bg-assistant-background p-4">
       <div className="w-full max-w-2xl space-y-8">
@@ -32,7 +63,7 @@ const PhotosAccessScreen = ({ onComplete }: PhotosAccessScreenProps) => {
           </div>
 
           <Button
-            onClick={onComplete}
+            onClick={handleComplete}
             size="lg"
             className="w-full"
             variant="outline"
@@ -41,7 +72,7 @@ const PhotosAccessScreen = ({ onComplete }: PhotosAccessScreenProps) => {
           </Button>
 
           <Button
-            onClick={onComplete}
+            onClick={handleComplete}
             size="lg"
             className="w-full"
           >
