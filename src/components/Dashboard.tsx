@@ -3,22 +3,20 @@ import PlanningDialog from "./PlanningDialog";
 import DashboardHeader from "./dashboard/DashboardHeader";
 import DashboardContent from "./dashboard/DashboardContent";
 import { Button } from "./ui/button";
-import { useToast } from "./ui/use-toast";
-import { handleAuthClick, listEvents, loadGoogleAPI } from "@/utils/googleCalendar";
+import { loadGoogleAPI } from "@/utils/googleCalendar";
+import { useGoogleCalendar } from "@/hooks/useGoogleCalendar";
 import {
   upcomingEvents,
   recentContacts,
   activityFeed,
   goals,
   activities,
-  type Event,
-  type Contact
 } from "@/data/dashboardData";
+import type { Event, Contact } from "@/types/dashboard";
 
 const Dashboard = () => {
   const [isPlanningOpen, setIsPlanningOpen] = useState(false);
-  const [googleEvents, setGoogleEvents] = useState<Event[]>([]);
-  const { toast } = useToast();
+  const { googleEvents, handleGoogleCalendarSync } = useGoogleCalendar();
 
   useEffect(() => {
     loadGoogleAPI();
@@ -36,38 +34,9 @@ const Dashboard = () => {
     console.log("Opening contact details for:", contact.name);
   };
 
-  const handlePlanClick = () => {
-    setIsPlanningOpen(true);
-  };
-
-  const handleGoogleCalendarSync = async () => {
-    try {
-      await handleAuthClick();
-      const events = await listEvents();
-      const formattedEvents: Event[] = (events || []).map((event: any) => ({
-        id: parseInt(event.id.substring(0, 8), 16),
-        title: event.summary || 'Untitled Event',
-        time: new Date(event.start?.dateTime || event.start?.date).toLocaleTimeString(),
-        type: 'work'
-      }));
-      setGoogleEvents(formattedEvents);
-      toast({
-        title: "Calendar Connected",
-        description: "Your Google Calendar has been connected successfully.",
-      });
-    } catch (error) {
-      console.error('Calendar sync error:', error);
-      toast({
-        title: "Connection Failed",
-        description: "Failed to connect to Google Calendar. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
   return (
     <div className="space-y-6">
-      <DashboardHeader onPlanClick={handlePlanClick} />
+      <DashboardHeader onPlanClick={() => setIsPlanningOpen(true)} />
 
       <div className="flex justify-end px-4">
         <Button 
