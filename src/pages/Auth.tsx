@@ -40,7 +40,7 @@ const Auth = () => {
     checkUser();
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session) {
         navigate("/");
         toast({
@@ -48,7 +48,7 @@ const Auth = () => {
           description: "You have successfully signed in.",
         });
       } else if (event === 'USER_UPDATED') {
-        const { error } = supabase.auth.getSession();
+        const { data, error } = await supabase.auth.getSession();
         if (error) {
           toast({
             variant: "destructive",
