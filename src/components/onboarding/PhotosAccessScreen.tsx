@@ -10,8 +10,7 @@ interface PhotosAccessScreenProps {
 
 const PhotosAccessScreen = ({ onComplete }: PhotosAccessScreenProps) => {
   const handleComplete = () => {
-    // Simply navigate to the home screen
-    window.location.href = '/';
+    onComplete();
   };
 
   return (
