@@ -13,7 +13,19 @@ const Auth = () => {
 
   const getErrorMessage = (error: AuthError) => {
     if (error instanceof AuthApiError) {
-      // First check the error code
+      // First check if it's a validation error from the API response
+      if (error.status === 400) {
+        try {
+          const errorBody = JSON.parse(error.message);
+          if (errorBody.code === "validation_failed") {
+            return "Please enter both email and password.";
+          }
+        } catch (e) {
+          // If parsing fails, continue to regular error handling
+        }
+      }
+
+      // Then check specific error codes
       switch (error.code) {
         case 'validation_failed':
           return 'Please enter both email and password.';
@@ -34,7 +46,16 @@ const Auth = () => {
               if (error.message.includes('valid email')) {
                 return 'Please enter a valid email address.';
               }
-              return error.message;
+              // Try to parse the error message if it's a JSON string
+              try {
+                const parsedError = JSON.parse(error.message);
+                if (parsedError.message) {
+                  return parsedError.message;
+                }
+              } catch (e) {
+                // If parsing fails, return the original message
+                return error.message;
+              }
           }
       }
     }
