@@ -3,9 +3,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Image } from "lucide-react";
 import AlCharacter from "./AlCharacter";
-import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
 
 interface PhotosAccessScreenProps {
   onComplete: () => void;
@@ -13,52 +11,10 @@ interface PhotosAccessScreenProps {
 
 const PhotosAccessScreen = ({ onComplete }: PhotosAccessScreenProps) => {
   const navigate = useNavigate();
-  const { toast } = useToast();
 
-  const handleComplete = async () => {
-    // First get the user session
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    
-    if (sessionError || !session?.user?.id) {
-      console.error('Error getting user session:', sessionError);
-      toast({
-        title: "Error",
-        description: "Unable to complete onboarding. Please try again.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      // Update the onboarding_completed flag with the confirmed user ID
-      const { error } = await supabase
-        .from('profiles')
-        .update({ onboarding_completed: true })
-        .eq('id', session.user.id);
-
-      if (error) throw error;
-
-      // Show success toast
-      toast({
-        title: "Welcome!",
-        description: "Your profile is all set up.",
-      });
-
-      // Call onComplete callback
-      onComplete();
-      
-      // Navigate to the main app
-      navigate('/', { replace: true });
-    } catch (error) {
-      console.error('Error completing onboarding:', error);
-      toast({
-        title: "Error",
-        description: "Unable to save your profile. Please try again.",
-        variant: "destructive",
-      });
-      // Navigate anyway since this is just a mockup
-      navigate('/', { replace: true });
-    }
+  const handleComplete = () => {
+    onComplete();
+    navigate('/', { replace: true });
   };
 
   return (
