@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -18,14 +18,27 @@ const OnboardingSplash = ({ onComplete }: OnboardingSplashProps) => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
+  // Check authentication status on mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        console.log('No session found, redirecting to auth');
+        navigate('/auth');
+      }
+    };
+    checkAuth();
+  }, [navigate]);
+
   const handleInitialContinue = async () => {
     console.log("Starting handleInitialContinue");
     setIsLoading(true);
+    
     try {
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      const { data: { session } } = await supabase.auth.getSession();
       
-      if (userError || !user) {
-        console.error('User error:', userError);
+      if (!session) {
+        console.log('No active session, redirecting to auth');
         toast({
           variant: "destructive",
           title: "Error",
@@ -35,13 +48,14 @@ const OnboardingSplash = ({ onComplete }: OnboardingSplashProps) => {
         return;
       }
 
-      console.log('Current user:', user.id);
+      const userId = session.user.id;
+      console.log('Current user:', userId);
 
       // First, get the current profile
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('onboarding_step')
-        .eq('id', user.id)
+        .eq('id', userId)
         .single();
 
       if (profileError) {
@@ -60,7 +74,7 @@ const OnboardingSplash = ({ onComplete }: OnboardingSplashProps) => {
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ onboarding_step: 2 })
-        .eq('id', user.id);
+        .eq('id', userId);
 
       if (updateError) {
         console.error('Update error:', updateError);
@@ -73,8 +87,6 @@ const OnboardingSplash = ({ onComplete }: OnboardingSplashProps) => {
       }
 
       console.log('Successfully updated onboarding step to 2');
-      
-      // If everything is successful, move to the next step
       setStep(2);
       console.log('Set step to 2');
     } catch (error) {
