@@ -1,4 +1,4 @@
-const CLIENT_ID = '1234567890-example.apps.googleusercontent.com'; // Replace with your actual client ID
+const CLIENT_ID = '478138990256-i31oqdho3lf07qq6ql97a0n9f9g990u2.apps.googleusercontent.com';
 const SCOPES = 'https://www.googleapis.com/auth/calendar.readonly';
 
 export const initializeGoogleCalendar = async () => {
