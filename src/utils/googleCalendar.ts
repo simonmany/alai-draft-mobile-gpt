@@ -36,7 +36,10 @@ export const listEvents = async () => {
 };
 
 export const handleAuthClick = () => {
-  return window.gapi.auth2.getAuthInstance().signIn();
+  return window.gapi.auth2.getAuthInstance().signIn({
+    ux_mode: 'popup',
+    redirect_uri: window.location.origin
+  });
 };
 
 export const loadGoogleAPI = () => {
