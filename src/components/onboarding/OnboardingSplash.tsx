@@ -19,11 +19,13 @@ const OnboardingSplash = ({ onComplete }: OnboardingSplashProps) => {
   const navigate = useNavigate();
 
   const handleInitialContinue = async () => {
+    console.log("Starting handleInitialContinue");
     setIsLoading(true);
     try {
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       
       if (userError || !user) {
+        console.error('User error:', userError);
         toast({
           variant: "destructive",
           title: "Error",
@@ -32,6 +34,8 @@ const OnboardingSplash = ({ onComplete }: OnboardingSplashProps) => {
         navigate("/auth");
         return;
       }
+
+      console.log('Current user:', user.id);
 
       // First, get the current profile
       const { data: profile, error: profileError } = await supabase
@@ -50,6 +54,8 @@ const OnboardingSplash = ({ onComplete }: OnboardingSplashProps) => {
         return;
       }
 
+      console.log('Current profile:', profile);
+
       // Update the onboarding step
       const { error: updateError } = await supabase
         .from('profiles')
@@ -66,8 +72,11 @@ const OnboardingSplash = ({ onComplete }: OnboardingSplashProps) => {
         return;
       }
 
+      console.log('Successfully updated onboarding step to 2');
+      
       // If everything is successful, move to the next step
       setStep(2);
+      console.log('Set step to 2');
     } catch (error) {
       console.error('Unexpected error:', error);
       toast({
@@ -85,11 +94,15 @@ const OnboardingSplash = ({ onComplete }: OnboardingSplashProps) => {
     setStep(3);
   };
 
+  console.log('Current step:', step);
+
   if (step === 2) {
+    console.log('Rendering GoalsSelectionStep');
     return <GoalsSelectionStep onComplete={handleGoalsSelected} />;
   }
 
   if (step === 3) {
+    console.log('Rendering GoalsRankingStep');
     return <GoalsRankingStep selectedGoals={selectedGoals} onComplete={onComplete} />;
   }
 
