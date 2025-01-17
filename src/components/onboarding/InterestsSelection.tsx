@@ -5,6 +5,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Check } from "lucide-react";
 import AlCharacter from "./AlCharacter";
 import { supabase } from "@/integrations/supabase/client";
+import DemographicsScreen from "./DemographicsScreen";
 
 const commonInterests = [
   "Playing basketball",
@@ -37,6 +38,7 @@ const InterestsSelection = ({ onComplete }: InterestsSelectionProps) => {
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const [isNodding, setIsNodding] = useState(false);
   const [search, setSearch] = useState("");
+  const [showDemographics, setShowDemographics] = useState(false);
 
   const handleSelectInterest = (interest: string) => {
     if (selectedInterests.includes(interest)) {
@@ -57,13 +59,17 @@ const InterestsSelection = ({ onComplete }: InterestsSelectionProps) => {
     if (error) {
       console.error('Error saving interests:', error);
     } else {
-      onComplete();
+      setShowDemographics(true);
     }
   };
 
   const filteredInterests = commonInterests.filter(interest =>
     interest.toLowerCase().includes(search.toLowerCase())
   );
+
+  if (showDemographics) {
+    return <DemographicsScreen onComplete={onComplete} />;
+  }
 
   return (
     <div className="fixed inset-0 flex flex-col items-center justify-center bg-assistant-background p-4">
