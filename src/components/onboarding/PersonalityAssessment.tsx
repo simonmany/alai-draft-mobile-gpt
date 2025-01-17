@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import AlCharacter from "./AlCharacter";
+import InterestsSelection from "./InterestsSelection";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 
@@ -62,6 +63,7 @@ const PersonalityAssessment = () => {
   const [isNodding, setIsNodding] = useState(false);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [notes, setNotes] = useState<Record<string, string>>({});
+  const [showInterests, setShowInterests] = useState(false);
 
   const handleOptionSelect = async (option: string) => {
     const question = questions[currentQuestion];
@@ -82,7 +84,7 @@ const PersonalityAssessment = () => {
     if (currentQuestion < questions.length - 1) {
       setCurrentQuestion(prev => prev + 1);
     } else {
-      // Save to database
+      // Save personality assessment
       const { error } = await supabase
         .from('personality_assessment')
         .insert([{
@@ -98,63 +100,65 @@ const PersonalityAssessment = () => {
       if (error) {
         console.error('Error saving personality assessment:', error);
       } else {
-        navigate('/'); // Navigate to dashboard or next step
+        setShowInterests(true);
       }
     }
   };
+
+  if (showInterests) {
+    return <InterestsSelection onComplete={() => navigate('/')} />;
+  }
 
   const question = questions[currentQuestion];
 
   return (
     <div className="fixed inset-0 flex flex-col items-center justify-center bg-assistant-background p-4">
-      <div className="w-full max-w-2xl space-y-8">
-        <AlCharacter isNodding={isNodding} />
-        
-        <motion.div
-          key={question.id}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          className="text-center space-y-4"
-        >
-          <h1 className="text-3xl font-bold text-assistant-primary">{question.title}</h1>
-          <p className="text-gray-600">{question.description}</p>
-        </motion.div>
+      <AlCharacter isNodding={isNodding} />
+      
+      <motion.div
+        key={question.id}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
+        className="text-center space-y-4"
+      >
+        <h1 className="text-3xl font-bold text-assistant-primary">{question.title}</h1>
+        <p className="text-gray-600">{question.description}</p>
+      </motion.div>
 
-        <div className="space-y-4">
-          <div className="grid grid-cols-5 gap-2">
-            {question.options.map((option, index) => (
-              <button
-                key={index}
-                onClick={() => handleOptionSelect(option)}
-                className={`p-4 rounded-lg text-sm transition-colors ${
-                  answers[question.field] === option
-                    ? "bg-assistant-primary text-white"
-                    : "bg-white hover:bg-assistant-muted"
-                }`}
-              >
-                {option}
-              </button>
-            ))}
-          </div>
-
-          <Textarea
-            placeholder="Say More? (Optional)"
-            value={notes[question.field + "_notes"] || ""}
-            onChange={(e) => handleNoteChange(e.target.value)}
-            className="mt-4"
-          />
+      <div className="space-y-4">
+        <div className="grid grid-cols-5 gap-2">
+          {question.options.map((option, index) => (
+            <button
+              key={index}
+              onClick={() => handleOptionSelect(option)}
+              className={`p-4 rounded-lg text-sm transition-colors ${
+                answers[question.field] === option
+                  ? "bg-assistant-primary text-white"
+                  : "bg-white hover:bg-assistant-muted"
+              }`}
+            >
+              {option}
+            </button>
+          ))}
         </div>
 
-        <Button
-          onClick={handleContinue}
-          disabled={!answers[question.field]}
-          size="lg"
-          className="w-full mt-8"
-        >
-          Continue
-        </Button>
+        <Textarea
+          placeholder="Say More? (Optional)"
+          value={notes[question.field + "_notes"] || ""}
+          onChange={(e) => handleNoteChange(e.target.value)}
+          className="mt-4"
+        />
       </div>
+
+      <Button
+        onClick={handleContinue}
+        disabled={!answers[question.field]}
+        size="lg"
+        className="w-full mt-8"
+      >
+        Continue
+      </Button>
     </div>
   );
 };
