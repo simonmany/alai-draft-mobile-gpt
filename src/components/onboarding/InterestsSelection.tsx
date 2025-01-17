@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
+import { Command } from "@/components/ui/command";
 import { Check } from "lucide-react";
 import AlCharacter from "./AlCharacter";
 import { supabase } from "@/integrations/supabase/client";
@@ -36,6 +36,7 @@ interface InterestsSelectionProps {
 const InterestsSelection = ({ onComplete }: InterestsSelectionProps) => {
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const [isNodding, setIsNodding] = useState(false);
+  const [search, setSearch] = useState("");
 
   const handleSelectInterest = (interest: string) => {
     if (selectedInterests.includes(interest)) {
@@ -60,6 +61,10 @@ const InterestsSelection = ({ onComplete }: InterestsSelectionProps) => {
     }
   };
 
+  const filteredInterests = commonInterests.filter(interest =>
+    interest.toLowerCase().includes(search.toLowerCase())
+  );
+
   return (
     <div className="fixed inset-0 flex flex-col items-center justify-center bg-assistant-background p-4">
       <div className="w-full max-w-2xl space-y-8">
@@ -74,41 +79,49 @@ const InterestsSelection = ({ onComplete }: InterestsSelectionProps) => {
           <p className="text-gray-600">Select or type your interests and hobbies</p>
         </motion.div>
 
-        <Command className="rounded-lg border shadow-md">
-          <CommandInput placeholder="Type or search interests..." />
-          <CommandEmpty>No interests found.</CommandEmpty>
-          <CommandGroup className="max-h-[300px] overflow-auto">
-            {commonInterests.map((interest) => (
-              <CommandItem
-                key={interest}
-                value={interest}
-                onSelect={() => handleSelectInterest(interest)}
-                className="cursor-pointer"
-              >
-                <div className="flex items-center gap-2">
-                  <div className={`flex h-4 w-4 items-center justify-center rounded-sm border ${
-                    selectedInterests.includes(interest) ? 'bg-assistant-primary border-assistant-primary' : 'border-gray-300'
-                  }`}>
-                    {selectedInterests.includes(interest) && (
-                      <Check className="h-3 w-3 text-white" />
-                    )}
-                  </div>
-                  <span>{interest}</span>
-                </div>
-              </CommandItem>
-            ))}
-          </CommandGroup>
-        </Command>
+        <div className="space-y-4">
+          <Command className="rounded-lg border shadow-md">
+            <Command.Input 
+              placeholder="Type or search interests..." 
+              value={search}
+              onValueChange={setSearch}
+            />
+            <Command.List>
+              <Command.Empty>No interests found.</Command.Empty>
+              <Command.Group>
+                {filteredInterests.map((interest) => (
+                  <Command.Item
+                    key={interest}
+                    value={interest}
+                    onSelect={() => handleSelectInterest(interest)}
+                    className="cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className={`flex h-4 w-4 items-center justify-center rounded-sm border ${
+                        selectedInterests.includes(interest) ? 'bg-assistant-primary border-assistant-primary' : 'border-gray-300'
+                      }`}>
+                        {selectedInterests.includes(interest) && (
+                          <Check className="h-3 w-3 text-white" />
+                        )}
+                      </div>
+                      <span>{interest}</span>
+                    </div>
+                  </Command.Item>
+                ))}
+              </Command.Group>
+            </Command.List>
+          </Command>
 
-        <div className="flex flex-wrap gap-2 mt-4">
-          {selectedInterests.map((interest) => (
-            <div
-              key={interest}
-              className="bg-assistant-muted text-assistant-primary px-3 py-1 rounded-full text-sm"
-            >
-              {interest}
-            </div>
-          ))}
+          <div className="flex flex-wrap gap-2 mt-4">
+            {selectedInterests.map((interest) => (
+              <div
+                key={interest}
+                className="bg-assistant-muted text-assistant-primary px-3 py-1 rounded-full text-sm"
+              >
+                {interest}
+              </div>
+            ))}
+          </div>
         </div>
 
         <Button
