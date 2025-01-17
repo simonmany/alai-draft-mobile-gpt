@@ -1,12 +1,42 @@
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
+import GoalsSelectionStep from "./GoalsSelectionStep";
+import GoalsRankingStep from "./GoalsRankingStep";
+import { supabase } from "@/integrations/supabase/client";
 
 interface OnboardingSplashProps {
   onComplete: () => void;
 }
 
 const OnboardingSplash = ({ onComplete }: OnboardingSplashProps) => {
+  const [step, setStep] = useState(1);
+  const [selectedGoals, setSelectedGoals] = useState<string[]>([]);
+
+  const handleInitialContinue = async () => {
+    const { error } = await supabase
+      .from('profiles')
+      .update({ onboarding_step: 2 })
+      .eq('id', (await supabase.auth.getUser()).data.user?.id);
+
+    if (!error) {
+      setStep(2);
+    }
+  };
+
+  const handleGoalsSelected = (goals: string[]) => {
+    setSelectedGoals(goals);
+    setStep(3);
+  };
+
+  if (step === 2) {
+    return <GoalsSelectionStep onComplete={handleGoalsSelected} />;
+  }
+
+  if (step === 3) {
+    return <GoalsRankingStep selectedGoals={selectedGoals} onComplete={onComplete} />;
+  }
+
   return (
     <div className="fixed inset-0 flex flex-col items-center justify-center bg-assistant-background">
       <div className="space-y-6 text-center">
@@ -32,7 +62,7 @@ const OnboardingSplash = ({ onComplete }: OnboardingSplashProps) => {
           transition={{ duration: 0.5, delay: 1.4 }}
         >
           <Button
-            onClick={onComplete}
+            onClick={handleInitialContinue}
             size="lg"
             className="mt-8 text-lg"
           >
