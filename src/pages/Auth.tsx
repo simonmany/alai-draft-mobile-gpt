@@ -9,6 +9,17 @@ import EmailSignupStep from "@/components/auth/EmailSignupStep";
 import PhoneSignupStep from "@/components/auth/PhoneSignupStep";
 import * as z from "zod";
 
+const emailSchema = z.object({
+  email: z.string().email("Please enter a valid email address"),
+});
+
+const phoneSchema = z.object({
+  phone: z.string().min(10, "Please enter a valid phone number"),
+});
+
+type EmailFormValues = z.infer<typeof emailSchema>;
+type PhoneFormValues = z.infer<typeof phoneSchema>;
+
 const Auth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -86,7 +97,7 @@ const Auth = () => {
     return error.message;
   };
 
-  const handleEmailSubmit = async (values: z.infer<typeof z.object({ email: z.string() })>) => {
+  const handleEmailSubmit = async (values: EmailFormValues) => {
     const { error } = await supabase.auth.signUp({
       email: values.email,
       password: "temporary-password",
@@ -99,7 +110,7 @@ const Auth = () => {
     }
   };
 
-  const handlePhoneSubmit = async (values: z.infer<typeof z.object({ phone: z.string() })>) => {
+  const handlePhoneSubmit = async (values: PhoneFormValues) => {
     const { data: { session } } = await supabase.auth.getSession();
     if (session) {
       const { error } = await supabase
