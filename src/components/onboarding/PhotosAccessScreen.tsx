@@ -3,19 +3,27 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Image } from "lucide-react";
 import AlCharacter from "./AlCharacter";
-import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 interface PhotosAccessScreenProps {
   onComplete: () => void;
 }
 
 const PhotosAccessScreen = ({ onComplete }: PhotosAccessScreenProps) => {
-  const navigate = useNavigate();
-
-  const handleComplete = () => {
-    onComplete();
-    // Force a full navigation to the root path which will render the Layout with tabs
-    window.location.href = '/';
+  const handleComplete = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      // Update the onboarding status
+      await supabase
+        .from('profiles')
+        .update({ onboarding_completed: true })
+        .eq('id', session.user.id);
+      
+      onComplete();
+      // Force a full reload which will take us to the home screen since we're authenticated
+      // and onboarding is completed
+      window.location.href = '/';
+    }
   };
 
   return (
