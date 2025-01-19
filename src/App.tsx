@@ -16,7 +16,6 @@ function App() {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check initial auth state
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       setIsAuthenticated(!!session);
@@ -24,7 +23,6 @@ function App() {
 
     checkSession();
 
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log("Auth state change:", event);
       setIsAuthenticated(!!session);
@@ -35,9 +33,10 @@ function App() {
     };
   }, []);
 
-  // Show loading state while checking auth
   if (isAuthenticated === null) {
-    return <div className="min-h-screen bg-assistant-background" />;
+    return <div className="min-h-screen bg-assistant-background flex items-center justify-center">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-assistant-primary" />
+    </div>;
   }
 
   return (
