@@ -10,6 +10,31 @@ export const useAuthState = () => {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
+  const determineStep = (profile: any) => {
+    if (profile.onboarding_completed) {
+      return "complete";
+    }
+
+    // If phone number is not set, user needs to complete that step
+    if (!profile.phone_number) {
+      return "phone";
+    }
+
+    // Otherwise, use the onboarding step to determine the current step
+    switch (profile.onboarding_step) {
+      case 1:
+        return "phone";
+      case 2:
+        return "personality";
+      case 3:
+        return "interests";
+      case 4:
+        return "complete";
+      default:
+        return "phone";
+    }
+  };
+
   useEffect(() => {
     const checkSession = async () => {
       try {
@@ -26,7 +51,6 @@ export const useAuthState = () => {
 
           if (profileError) {
             console.error("Profile fetch error:", profileError);
-            // If the profile doesn't exist, sign out and reset
             await supabase.auth.signOut();
             setCurrentStep("email");
             setIsLoading(false);
@@ -34,36 +58,12 @@ export const useAuthState = () => {
           }
 
           console.log("Profile data:", profile);
-
-          if (profile.onboarding_completed) {
-            setCurrentStep("complete");
-          } else {
-            // Determine step based on profile data
-            if (!profile.phone_number) {
-              setCurrentStep("phone");
-            } else {
-              switch (profile.onboarding_step) {
-                case 1:
-                  setCurrentStep("phone");
-                  break;
-                case 2:
-                  setCurrentStep("personality");
-                  break;
-                case 3:
-                  setCurrentStep("interests");
-                  break;
-                case 4:
-                  setCurrentStep("complete");
-                  break;
-                default:
-                  setCurrentStep("phone");
-              }
-            }
-          }
+          const nextStep = determineStep(profile);
+          console.log("Determined next step:", nextStep);
+          setCurrentStep(nextStep);
         }
       } catch (error) {
         console.error("Session check error:", error);
-        // If there's any error with the session, sign out and reset
         await supabase.auth.signOut();
         setCurrentStep("email");
         setError(error instanceof Error ? error.message : "An error occurred");
@@ -93,31 +93,9 @@ export const useAuthState = () => {
           }
 
           console.log("Profile data on auth change:", profile);
-
-          if (profile.onboarding_completed) {
-            setCurrentStep("complete");
-          } else {
-            if (!profile.phone_number) {
-              setCurrentStep("phone");
-            } else {
-              switch (profile.onboarding_step) {
-                case 1:
-                  setCurrentStep("phone");
-                  break;
-                case 2:
-                  setCurrentStep("personality");
-                  break;
-                case 3:
-                  setCurrentStep("interests");
-                  break;
-                case 4:
-                  setCurrentStep("complete");
-                  break;
-                default:
-                  setCurrentStep("phone");
-              }
-            }
-          }
+          const nextStep = determineStep(profile);
+          console.log("Determined next step on auth change:", nextStep);
+          setCurrentStep(nextStep);
         } catch (error) {
           console.error("Error handling auth state change:", error);
           await supabase.auth.signOut();
