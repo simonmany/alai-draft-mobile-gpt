@@ -56,24 +56,28 @@ const Auth = () => {
 
           if (profileError) throw profileError;
 
-          // If profile exists but no phone number, show phone step
+          // Always show phone step if no phone number
           if (!profile?.phone_number) {
+            console.log("No phone number found, showing phone step");
             setShowNewUserFlow(true);
             setSignupStep('phone');
             setIsLoading(false);
             return;
           }
-          
-          // If has phone but onboarding not complete, show onboarding
+
+          // Show onboarding if phone exists but onboarding not complete
           if (!profile?.onboarding_completed) {
+            console.log("Phone exists but onboarding not complete, showing onboarding");
             setShowOnboarding(true);
             setIsLoading(false);
             return;
           }
 
           // Only navigate home if everything is complete
+          console.log("Profile complete, navigating home");
           navigate("/", { replace: true });
         }
+        setIsLoading(false);
       } catch (error) {
         console.error('Error in checkUser:', error);
         await supabase.auth.signOut();
@@ -82,7 +86,6 @@ const Auth = () => {
           description: "Please sign in again",
           variant: "destructive",
         });
-      } finally {
         setIsLoading(false);
       }
     };
@@ -104,23 +107,26 @@ const Auth = () => {
 
           if (profileError) throw profileError;
 
-          // New user flow - need phone number
+          // Always show phone step for new users
           if (!profile?.phone_number) {
+            console.log("No phone number found after sign in, showing phone step");
             setShowNewUserFlow(true);
             setSignupStep('phone');
-            return;
-          }
-          
-          // Has phone but needs onboarding
-          if (!profile?.onboarding_completed) {
-            setShowOnboarding(true);
+            setIsLoading(false);
             return;
           }
 
-          // Everything complete - go home
-          if (profile.onboarding_completed) {
-            navigate("/", { replace: true });
+          // Show onboarding if phone exists but onboarding not complete
+          if (!profile?.onboarding_completed) {
+            console.log("Phone exists but onboarding not complete after sign in");
+            setShowOnboarding(true);
+            setIsLoading(false);
+            return;
           }
+
+          // Only navigate home if everything is complete
+          console.log("Profile complete after sign in, navigating home");
+          navigate("/", { replace: true });
         } catch (error) {
           console.error('Error fetching profile:', error);
           toast({
@@ -208,7 +214,9 @@ const Auth = () => {
         });
       }
 
+      // Explicitly set the signup step to phone after successful email signup
       setSignupStep('phone');
+      setShowNewUserFlow(true);
     } catch (error) {
       console.error('Error in email signup:', error);
       let errorMessage = "Failed to sign up";
@@ -264,6 +272,7 @@ const Auth = () => {
 
       if (updateError) throw updateError;
 
+      // After phone number is saved, show onboarding
       setShowNewUserFlow(false);
       setShowOnboarding(true);
       
