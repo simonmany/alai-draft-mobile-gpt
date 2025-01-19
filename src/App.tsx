@@ -42,7 +42,7 @@ function App() {
       setIsAuthenticated(true);
 
       // Verify the session is valid by making a test query
-      supabase
+      return supabase
         .from('profiles')
         .select('id')
         .eq('id', session.user.id)
@@ -52,6 +52,10 @@ function App() {
             console.error("Profile verification failed:", profileError);
             handleInvalidSession();
           }
+        })
+        .catch((error) => {
+          console.error("Error verifying profile:", error);
+          handleInvalidSession();
         });
     });
 
@@ -60,13 +64,12 @@ function App() {
       console.log("Auth state change:", event);
       
       if (event === 'SIGNED_OUT') {
+        console.log('User signed out, updating state');
         setIsAuthenticated(false);
         return;
       }
 
       if (event === 'SIGNED_IN' && session) {
-        setIsAuthenticated(true);
-        
         try {
           const { error: profileError } = await supabase
             .from('profiles')
@@ -77,7 +80,10 @@ function App() {
           if (profileError) {
             console.error("Profile verification failed:", profileError);
             await handleInvalidSession();
+            return;
           }
+
+          setIsAuthenticated(true);
         } catch (error) {
           console.error("Error verifying profile:", error);
           await handleInvalidSession();

@@ -35,8 +35,6 @@ const Goals = () => {
       if (error) {
         throw error;
       }
-
-      // Let the auth state change in App.tsx handle the navigation
     } catch (error) {
       console.error('Sign out error:', error);
       toast({
