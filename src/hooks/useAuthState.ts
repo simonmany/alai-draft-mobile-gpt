@@ -16,22 +16,45 @@ export const useAuthState = () => {
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session?.user) {
+          console.log("User session found:", session.user.id);
+          
           const { data: profile, error: profileError } = await supabase
             .from('profiles')
             .select('phone_number, onboarding_completed, onboarding_step')
             .eq('id', session.user.id)
             .single();
 
-          if (profileError) throw profileError;
+          if (profileError) {
+            console.error("Profile fetch error:", profileError);
+            throw profileError;
+          }
+
+          console.log("Profile data:", profile);
 
           if (profile.onboarding_completed) {
             setCurrentStep("complete");
-          } else if (!profile.phone_number) {
-            setCurrentStep("phone");
-          } else if (profile.onboarding_step === 2) {
-            setCurrentStep("personality");
-          } else if (profile.onboarding_step === 3) {
-            setCurrentStep("interests");
+          } else {
+            // Determine step based on profile data
+            if (!profile.phone_number) {
+              setCurrentStep("phone");
+            } else {
+              switch (profile.onboarding_step) {
+                case 1:
+                  setCurrentStep("phone");
+                  break;
+                case 2:
+                  setCurrentStep("personality");
+                  break;
+                case 3:
+                  setCurrentStep("interests");
+                  break;
+                case 4:
+                  setCurrentStep("complete");
+                  break;
+                default:
+                  setCurrentStep("phone");
+              }
+            }
           }
         }
       } catch (error) {
@@ -48,25 +71,46 @@ export const useAuthState = () => {
       console.log("Auth state change:", event);
       
       if (event === 'SIGNED_IN' && session) {
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('phone_number, onboarding_completed, onboarding_step')
-          .eq('id', session.user.id)
-          .single();
+        try {
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('phone_number, onboarding_completed, onboarding_step')
+            .eq('id', session.user.id)
+            .single();
 
-        if (profileError) {
-          console.error("Profile fetch error:", profileError);
-          return;
-        }
+          if (profileError) {
+            console.error("Profile fetch error:", profileError);
+            return;
+          }
 
-        if (profile.onboarding_completed) {
-          setCurrentStep("complete");
-        } else if (!profile.phone_number) {
-          setCurrentStep("phone");
-        } else if (profile.onboarding_step === 2) {
-          setCurrentStep("personality");
-        } else if (profile.onboarding_step === 3) {
-          setCurrentStep("interests");
+          console.log("Profile data on auth change:", profile);
+
+          if (profile.onboarding_completed) {
+            setCurrentStep("complete");
+          } else {
+            if (!profile.phone_number) {
+              setCurrentStep("phone");
+            } else {
+              switch (profile.onboarding_step) {
+                case 1:
+                  setCurrentStep("phone");
+                  break;
+                case 2:
+                  setCurrentStep("personality");
+                  break;
+                case 3:
+                  setCurrentStep("interests");
+                  break;
+                case 4:
+                  setCurrentStep("complete");
+                  break;
+                default:
+                  setCurrentStep("phone");
+              }
+            }
+          }
+        } catch (error) {
+          console.error("Error handling auth state change:", error);
         }
       } else if (event === 'SIGNED_OUT') {
         setCurrentStep("email");
