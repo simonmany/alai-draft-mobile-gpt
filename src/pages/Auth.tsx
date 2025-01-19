@@ -126,36 +126,25 @@ const Auth = () => {
       setError(null);
       setLastSubmitTime(now);
 
-      // First, check if user exists
-      const { data: { users }, error: getUserError } = await supabase.auth.admin.listUsers({
-        filters: {
-          email: values.email
-        }
+      // Check if user exists using signInWithOtp
+      const { error: signInError } = await supabase.auth.signInWithOtp({
+        email: values.email,
       });
-
-      if (getUserError) throw getUserError;
 
       // Generate a secure random password
       const randomPassword = Math.random().toString(36).slice(-12) + 
                            Math.random().toString(36).toUpperCase().slice(-4) + 
                            "!2";
 
-      if (users && users.length > 0) {
-        // User exists, attempt to sign in
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-          email: values.email,
-          password: randomPassword,
+      if (!signInError) {
+        // User exists
+        toast({
+          title: "Account exists",
+          description: "This email is already registered. Please use the sign in option below.",
+          variant: "destructive",
         });
-
-        if (signInError) {
-          toast({
-            title: "Account exists",
-            description: "This email is already registered. Please use the sign in option below.",
-            variant: "destructive",
-          });
-          setShowNewUserFlow(false);
-          return;
-        }
+        setShowNewUserFlow(false);
+        return;
       } else {
         // New user, proceed with signup
         const { error: signUpError } = await supabase.auth.signUp({
