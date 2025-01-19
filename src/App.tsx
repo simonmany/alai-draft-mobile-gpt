@@ -27,7 +27,7 @@ function App() {
       setIsAuthenticated(true);
 
       // Verify the session is valid by making a test query
-      void supabase
+      supabase
         .from('profiles')
         .select('id')
         .eq('id', session.user.id)
@@ -35,27 +35,24 @@ function App() {
         .then(({ error: profileError }) => {
           if (profileError) {
             console.error("Profile verification failed:", profileError);
-            void handleInvalidSession();
+            handleInvalidSession();
           }
-        })
-        .catch((error) => {
-          console.error("Error verifying profile:", error);
-          void handleInvalidSession();
         });
     });
 
     const handleInvalidSession = async () => {
       try {
         await supabase.auth.signOut();
-      } catch (error) {
-        console.error("Error during sign out:", error);
-      } finally {
         setIsAuthenticated(false);
         toast({
           title: "Session Expired",
           description: "Please sign in again.",
           variant: "destructive",
         });
+      } catch (error) {
+        console.error("Error during sign out:", error);
+        // Even if sign out fails, we should reset the auth state
+        setIsAuthenticated(false);
       }
     };
 
