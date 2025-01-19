@@ -15,6 +15,21 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const { toast } = useToast();
 
+  const handleInvalidSession = async () => {
+    try {
+      await supabase.auth.signOut();
+      setIsAuthenticated(false);
+      toast({
+        title: "Session Expired",
+        description: "Please sign in again.",
+        variant: "destructive",
+      });
+    } catch (error) {
+      console.error("Error during sign out:", error);
+      setIsAuthenticated(false);
+    }
+  };
+
   useEffect(() => {
     // Check initial auth state
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -37,24 +52,12 @@ function App() {
             console.error("Profile verification failed:", profileError);
             handleInvalidSession();
           }
+        })
+        .catch((error) => {
+          console.error("Error verifying profile:", error);
+          handleInvalidSession();
         });
     });
-
-    const handleInvalidSession = async () => {
-      try {
-        await supabase.auth.signOut();
-        setIsAuthenticated(false);
-        toast({
-          title: "Session Expired",
-          description: "Please sign in again.",
-          variant: "destructive",
-        });
-      } catch (error) {
-        console.error("Error during sign out:", error);
-        // Even if sign out fails, we should reset the auth state
-        setIsAuthenticated(false);
-      }
-    };
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
@@ -68,15 +71,19 @@ function App() {
       if (event === 'SIGNED_IN' && session) {
         setIsAuthenticated(true);
         
-        // Verify the session is valid
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('id', session.user.id)
-          .single();
+        try {
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('id', session.user.id)
+            .single();
 
-        if (profileError) {
-          console.error("Profile verification failed:", profileError);
+          if (profileError) {
+            console.error("Profile verification failed:", profileError);
+            await handleInvalidSession();
+          }
+        } catch (error) {
+          console.error("Error verifying profile:", error);
           await handleInvalidSession();
         }
         return;
