@@ -42,7 +42,7 @@ function App() {
       setIsAuthenticated(true);
 
       // Verify the session is valid by making a test query
-      supabase
+      return supabase
         .from('profiles')
         .select('id')
         .eq('id', session.user.id)
@@ -50,12 +50,12 @@ function App() {
         .then(({ error: profileError }) => {
           if (profileError) {
             console.error("Profile verification failed:", profileError);
-            handleInvalidSession();
+            return handleInvalidSession();
           }
         })
         .catch((error) => {
           console.error("Error verifying profile:", error);
-          handleInvalidSession();
+          return handleInvalidSession();
         });
     });
 
