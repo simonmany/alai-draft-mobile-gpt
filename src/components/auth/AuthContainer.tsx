@@ -1,5 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { AuthError } from "@supabase/supabase-js";
+import { supabase } from "@/integrations/supabase/client";
+import { getAuthErrorMessage } from "@/utils/authErrors";
 import AuthUI from "./AuthUI";
 import EmailSignupStep from "./EmailSignupStep";
 import PhoneSignupStep from "./PhoneSignupStep";

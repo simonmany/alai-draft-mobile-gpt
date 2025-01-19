@@ -3,8 +3,17 @@ import InterestsSelection from "../InterestsSelection";
 import { usePersonalityAssessment, questions } from "./usePersonalityAssessment";
 import PersonalityQuestion from "./PersonalityQuestion";
 
+interface PersonalityData {
+  social_energy: string;
+  social_energy_notes: string;
+  social_style: string;
+  social_style_notes: string;
+  planning_style: string;
+  planning_style_notes: string;
+}
+
 interface PersonalityAssessmentProps {
-  onComplete: (data: any) => Promise<void>;
+  onComplete: (data: PersonalityData) => Promise<void>;
 }
 
 const PersonalityAssessment = ({ onComplete }: PersonalityAssessmentProps) => {
@@ -17,13 +26,13 @@ const PersonalityAssessment = ({ onComplete }: PersonalityAssessmentProps) => {
     handleOptionSelect,
     handleNoteChange,
     handleContinue,
-  } = usePersonalityAssessment(async (data) => {
+  } = usePersonalityAssessment(async (data: PersonalityData) => {
     await onComplete(data);
     setShowInterests(true);
   });
 
   if (showInterests) {
-    return <InterestsSelection onComplete={onComplete} />;
+    return <InterestsSelection onComplete={() => onComplete(answers as PersonalityData)} />;
   }
 
   const question = questions[currentQuestion];
