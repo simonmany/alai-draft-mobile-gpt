@@ -65,25 +65,12 @@ const Auth = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session) {
         setCurrentUser(session.user);
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('onboarding_completed, onboarding_step')
-          .eq('id', session.user.id)
-          .single();
-
-        if (profile && !profile.onboarding_completed) {
-          setShowOnboarding(true);
-        } else {
-          navigate("/");
-          toast({
-            title: "Welcome!",
-            description: "You have successfully signed in.",
-          });
-        }
+        setSignupStep('phone');
       } else if (event === 'SIGNED_OUT') {
         setCurrentUser(null);
         setError(null);
         setShowOnboarding(false);
+        setSignupStep('email');
       }
     });
 
@@ -120,7 +107,9 @@ const Auth = () => {
 
   const handlePhoneSubmit = async (values: PhoneFormValues) => {
     try {
-      if (!currentUser) {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session?.user) {
         throw new Error("Please complete email signup first");
       }
 
@@ -130,7 +119,7 @@ const Auth = () => {
           phone_number: values.phone,
           onboarding_step: 2
         })
-        .eq('id', currentUser.id);
+        .eq('id', session.user.id);
 
       if (updateError) throw updateError;
 
@@ -151,12 +140,13 @@ const Auth = () => {
 
   const handleOnboardingComplete = async () => {
     try {
-      if (!currentUser) throw new Error("No user found");
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) throw new Error("No user found");
 
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ onboarding_completed: true })
-        .eq('id', currentUser.id);
+        .eq('id', session.user.id);
 
       if (updateError) throw updateError;
 
