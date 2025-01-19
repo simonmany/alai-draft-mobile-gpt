@@ -56,7 +56,8 @@ const Auth = () => {
 
           if (profileError) throw profileError;
 
-          // Always show phone step if no phone number
+          console.log("Current profile state:", profile);
+
           if (!profile?.phone_number) {
             console.log("No phone number found, showing phone step");
             setShowNewUserFlow(true);
@@ -65,7 +66,6 @@ const Auth = () => {
             return;
           }
 
-          // Show onboarding if phone exists but onboarding not complete
           if (!profile?.onboarding_completed) {
             console.log("Phone exists but onboarding not complete, showing onboarding");
             setShowOnboarding(true);
@@ -73,7 +73,6 @@ const Auth = () => {
             return;
           }
 
-          // Only navigate home if everything is complete
           console.log("Profile complete, navigating home");
           navigate("/", { replace: true });
         }
@@ -107,26 +106,14 @@ const Auth = () => {
 
           if (profileError) throw profileError;
 
-          // Always show phone step for new users
-          if (!profile?.phone_number) {
-            console.log("No phone number found after sign in, showing phone step");
-            setShowNewUserFlow(true);
-            setSignupStep('phone');
-            setIsLoading(false);
-            return;
-          }
+          console.log("Profile after sign in:", profile);
 
-          // Show onboarding if phone exists but onboarding not complete
-          if (!profile?.onboarding_completed) {
-            console.log("Phone exists but onboarding not complete after sign in");
-            setShowOnboarding(true);
-            setIsLoading(false);
-            return;
-          }
+          // Force phone step for all new sign-ins
+          setShowNewUserFlow(true);
+          setSignupStep('phone');
+          setIsLoading(false);
+          return;
 
-          // Only navigate home if everything is complete
-          console.log("Profile complete after sign in, navigating home");
-          navigate("/", { replace: true });
         } catch (error) {
           console.error('Error fetching profile:', error);
           toast({
@@ -272,7 +259,6 @@ const Auth = () => {
 
       if (updateError) throw updateError;
 
-      // After phone number is saved, show onboarding
       setShowNewUserFlow(false);
       setShowOnboarding(true);
       
