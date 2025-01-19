@@ -13,8 +13,8 @@ const Goals = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [newGoal, setNewGoal] = useState("");
+  const [isSigningOut, setIsSigningOut] = useState(false);
 
-  // Sample data - in a real app, this would come from Supabase
   const [goals, setGoals] = useState([
     { id: 1, name: "Meet new friends", progress: 60, status: "3 new connections" },
     { id: 2, name: "Join a sports club", progress: 30, status: "Research phase" },
@@ -28,19 +28,47 @@ const Goals = () => {
   ]);
 
   const handleSignOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      toast({
-        variant: "destructive",
-        title: "Error signing out",
-        description: error.message,
-      });
-    } else {
+    try {
+      setIsSigningOut(true);
+      
+      // First check if we have a valid session
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        // If no session exists, just redirect to auth page
+        navigate("/auth");
+        return;
+      }
+
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        // If we get a 403/user not found error, the session is already invalid
+        if (error.status === 403 && error.message.includes('user_not_found')) {
+          // Just redirect to auth page
+          navigate("/auth");
+          return;
+        }
+        
+        throw error;
+      }
+
       navigate("/auth");
       toast({
         title: "Signed out",
         description: "You have been successfully signed out.",
       });
+    } catch (error) {
+      console.error('Sign out error:', error);
+      // Force redirect to auth page if we can't properly sign out
+      navigate("/auth");
+      toast({
+        variant: "destructive",
+        title: "Error signing out",
+        description: "You have been signed out due to an expired session.",
+      });
+    } finally {
+      setIsSigningOut(false);
     }
   };
 
@@ -68,9 +96,10 @@ const Goals = () => {
           variant="ghost"
           className="text-gray-600 hover:text-gray-900"
           onClick={handleSignOut}
+          disabled={isSigningOut}
         >
           <LogOut className="h-5 w-5 mr-2" />
-          Sign Out
+          {isSigningOut ? "Signing out..." : "Sign Out"}
         </Button>
       </div>
 
