@@ -179,8 +179,47 @@ const PersonalityAssessment = ({ onComplete }: PersonalityAssessmentProps) => {
     }
   };
 
-  const handleInterestsComplete = () => {
-    // This will be handled by the InterestsSelection component
+  const handleInterestsComplete = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: "Error",
+          description: "No user found. Please try logging in again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Only set onboarding_completed to true after interests are selected
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ 
+          onboarding_completed: true,
+          onboarding_step: 5
+        })
+        .eq('id', user.id);
+
+      if (profileError) {
+        console.error('Error completing onboarding:', profileError);
+        toast({
+          title: "Error",
+          description: "Failed to complete onboarding. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Redirect to home or show completion screen
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Error completing interests:', error);
+      toast({
+        title: "Error",
+        description: "Failed to complete onboarding. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   if (showInterests) {
