@@ -18,7 +18,7 @@ export const useAuthState = () => {
         if (session?.user) {
           const { data: profile, error: profileError } = await supabase
             .from('profiles')
-            .select('phone_number, onboarding_completed')
+            .select('phone_number, onboarding_completed, onboarding_step')
             .eq('id', session.user.id)
             .single();
 
@@ -26,6 +26,7 @@ export const useAuthState = () => {
 
           console.log("Profile state:", profile);
 
+          // Determine the current step based on profile data
           if (!profile?.phone_number) {
             setCurrentStep("phone");
           } else if (!profile?.onboarding_completed) {
@@ -50,14 +51,21 @@ export const useAuthState = () => {
       console.log("Auth state change:", event);
       
       if (event === 'SIGNED_IN' && session) {
-        const { data: profile } = await supabase
+        // Always check profile state on sign in
+        const { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .select('phone_number, onboarding_completed')
+          .select('phone_number, onboarding_completed, onboarding_step')
           .eq('id', session.user.id)
           .single();
 
+        if (profileError) {
+          console.error("Profile fetch error:", profileError);
+          return;
+        }
+
         console.log("Profile after sign in:", profile);
 
+        // Set the appropriate step based on profile completion
         if (!profile?.phone_number) {
           setCurrentStep("phone");
         } else if (!profile?.onboarding_completed) {

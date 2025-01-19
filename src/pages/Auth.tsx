@@ -27,51 +27,50 @@ const Auth = () => {
   const { currentStep, setCurrentStep, isLoading, error, setError } = useAuthState();
 
   const handleEmailSubmit = async (values: EmailFormValues) => {
-  try {
-    const randomPassword =
-      Math.random().toString(36).slice(-12) +
-      Math.random().toString(36).toUpperCase().slice(-4) +
-      "!2";
+    try {
+      const randomPassword =
+        Math.random().toString(36).slice(-12) +
+        Math.random().toString(36).toUpperCase().slice(-4) +
+        "!2";
 
-    const { error: signUpError } = await supabase.auth.signUp({
-      email: values.email,
-      password: randomPassword,
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth`,
-      },
-    });
+      const { error: signUpError } = await supabase.auth.signUp({
+        email: values.email,
+        password: randomPassword,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth`,
+        },
+      });
 
-    if (signUpError) {
-      if (signUpError instanceof AuthApiError && signUpError.status === 422) {
-        const errorMessage = getAuthErrorMessage(signUpError);
-        setError(errorMessage);
-        setCurrentStep("login");
-        return;
+      if (signUpError) {
+        if (signUpError instanceof AuthApiError && signUpError.status === 422) {
+          const errorMessage = getAuthErrorMessage(signUpError);
+          setError(errorMessage);
+          setCurrentStep("login");
+          return;
+        }
+        throw signUpError;
       }
-      throw signUpError;
+
+      toast({
+        title: "Success",
+        description: "Please check your email to verify your account",
+      });
+
+      // The auth state change listener will handle the transition to the next step
+    } catch (error) {
+      console.error("Error in email signup:", error);
+      const errorMessage =
+        error instanceof AuthError
+          ? getAuthErrorMessage(error)
+          : "An unexpected error occurred";
+      setError(errorMessage);
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
     }
-
-    toast({
-      title: "Success",
-      description: "Please check your email to verify your account",
-    });
-
-    // Transition to the phone step after successful email submission
-    setCurrentStep("phone");
-  } catch (error) {
-    console.error("Error in email signup:", error);
-    const errorMessage =
-      error instanceof AuthError
-        ? getAuthErrorMessage(error)
-        : "An unexpected error occurred";
-    setError(errorMessage);
-    toast({
-      title: "Error",
-      description: errorMessage,
-      variant: "destructive",
-    });
-  }
-};
+  };
 
   const handlePhoneSubmit = async (values: PhoneFormValues) => {
     try {
@@ -114,13 +113,16 @@ const Auth = () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) throw new Error("No user found");
 
-      await supabase
+      const { error: updateError } = await supabase
         .from('profiles')
         .update({ 
           onboarding_completed: true,
-          personality_traits: personalityData
+          personality_traits: personalityData,
+          onboarding_step: 3
         })
         .eq('id', session.user.id);
+
+      if (updateError) throw updateError;
 
       setCurrentStep("complete");
       navigate("/", { replace: true });
@@ -145,10 +147,6 @@ const Auth = () => {
     return null;
   }
 
-  if (currentStep === "personality") {
-    return <PersonalityAssessment onComplete={handlePersonalityComplete} />;
-  }
-
   return (
     <div className="min-h-screen bg-assistant-background flex items-center justify-center p-4">
       <div className="w-full max-w-md space-y-8">
@@ -164,6 +162,9 @@ const Auth = () => {
         )}
         {currentStep === "phone" && (
           <PhoneSignupStep onSubmit={handlePhoneSubmit} />
+        )}
+        {currentStep === "personality" && (
+          <PersonalityAssessment onComplete={handlePersonalityComplete} />
         )}
       </div>
     </div>
