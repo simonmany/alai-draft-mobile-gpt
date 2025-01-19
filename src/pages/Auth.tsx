@@ -95,10 +95,6 @@ const Auth = () => {
           } else {
             navigate("/");
           }
-        } else {
-          // If no profile exists, start with phone number collection
-          setShowNewUserFlow(true);
-          setSignupStep('phone');
         }
       } else if (event === 'SIGNED_OUT') {
         setError(null);
@@ -178,6 +174,9 @@ const Auth = () => {
           description: "Please check your email to verify your account",
         });
       }
+
+      // After successful signup, move to phone step
+      setSignupStep('phone');
     } catch (error) {
       console.error('Error in email signup:', error);
       let errorMessage = "Failed to sign up";
