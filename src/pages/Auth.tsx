@@ -28,27 +28,19 @@ const Auth = () => {
   const [showNewUserFlow, setShowNewUserFlow] = useState(false);
   const [signupStep, setSignupStep] = useState<'email' | 'phone'>('email');
   const [isLoading, setIsLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState<any>(null);
 
   useEffect(() => {
     const checkUser = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          const { data: profile, error: profileError } = await supabase
+        if (session?.user) {
+          setCurrentUser(session.user);
+          const { data: profile } = await supabase
             .from('profiles')
             .select('onboarding_completed, onboarding_step')
             .eq('id', session.user.id)
             .single();
-
-          if (profileError) {
-            console.error('Error fetching profile:', profileError);
-            toast({
-              title: "Error",
-              description: "Failed to fetch user profile",
-              variant: "destructive",
-            });
-            return;
-          }
 
           if (profile && !profile.onboarding_completed) {
             setShowOnboarding(true);
@@ -56,9 +48,14 @@ const Auth = () => {
             navigate("/");
           }
         }
-        setIsLoading(false);
       } catch (error) {
         console.error('Error in checkUser:', error);
+        toast({
+          title: "Error",
+          description: "Failed to check user session",
+          variant: "destructive",
+        });
+      } finally {
         setIsLoading(false);
       }
     };
@@ -67,21 +64,12 @@ const Auth = () => {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session) {
-        const { data: profile, error: profileError } = await supabase
+        setCurrentUser(session.user);
+        const { data: profile } = await supabase
           .from('profiles')
           .select('onboarding_completed, onboarding_step')
           .eq('id', session.user.id)
           .single();
-
-        if (profileError) {
-          console.error('Error fetching profile:', profileError);
-          toast({
-            title: "Error",
-            description: "Failed to fetch user profile",
-            variant: "destructive",
-          });
-          return;
-        }
 
         if (profile && !profile.onboarding_completed) {
           setShowOnboarding(true);
@@ -93,6 +81,7 @@ const Auth = () => {
           });
         }
       } else if (event === 'SIGNED_OUT') {
+        setCurrentUser(null);
         setError(null);
         setShowOnboarding(false);
       }
@@ -105,21 +94,25 @@ const Auth = () => {
 
   const handleEmailSubmit = async (values: EmailFormValues) => {
     try {
-      const { data: { user }, error: signUpError } = await supabase.auth.signUp({
+      setError(null);
+      const { error: signUpError } = await supabase.auth.signUp({
         email: values.email,
-        password: "temporary-password", // You might want to add a password field to your form
+        password: "temporary-password",
       });
 
       if (signUpError) throw signUpError;
 
-      if (user) {
-        setSignupStep('phone');
-      }
+      setSignupStep('phone');
+      toast({
+        title: "Success",
+        description: "Please check your email to verify your account",
+      });
     } catch (error) {
       console.error('Error in email signup:', error);
+      setError(error instanceof AuthApiError ? error.message : "Failed to sign up");
       toast({
         title: "Error",
-        description: "Failed to sign up. Please try again.",
+        description: error instanceof AuthApiError ? error.message : "Failed to sign up",
         variant: "destructive",
       });
     }
@@ -127,8 +120,9 @@ const Auth = () => {
 
   const handlePhoneSubmit = async (values: PhoneFormValues) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("No user found");
+      if (!currentUser) {
+        throw new Error("Please complete email signup first");
+      }
 
       const { error: updateError } = await supabase
         .from('profiles')
@@ -136,16 +130,20 @@ const Auth = () => {
           phone_number: values.phone,
           onboarding_step: 2
         })
-        .eq('id', user.id);
+        .eq('id', currentUser.id);
 
       if (updateError) throw updateError;
 
       setShowOnboarding(true);
+      toast({
+        title: "Success",
+        description: "Phone number updated successfully",
+      });
     } catch (error) {
       console.error('Error in phone signup:', error);
       toast({
         title: "Error",
-        description: "Failed to update phone number. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to update phone number",
         variant: "destructive",
       });
     }
@@ -153,13 +151,12 @@ const Auth = () => {
 
   const handleOnboardingComplete = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("No user found");
+      if (!currentUser) throw new Error("No user found");
 
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ onboarding_completed: true })
-        .eq('id', user.id);
+        .eq('id', currentUser.id);
 
       if (updateError) throw updateError;
 
@@ -179,7 +176,7 @@ const Auth = () => {
   };
 
   if (isLoading) {
-    return null; // Or a loading spinner
+    return null;
   }
 
   if (showOnboarding) {
