@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import GoalsSelectionStep from "./GoalsSelectionStep";
 import GoalsRankingStep from "./GoalsRankingStep";
 import PersonalityAssessment from "./PersonalityAssessment";
@@ -13,18 +15,103 @@ const OnboardingSplash = ({ onComplete }: OnboardingSplashProps) => {
   const [step, setStep] = useState(1);
   const [selectedGoals, setSelectedGoals] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
   const handleInitialContinue = () => {
     setStep(2);
   };
 
-  const handleGoalsSelected = (goals: string[]) => {
-    setSelectedGoals(goals);
-    setStep(3);
+  const handleGoalsSelected = async (goals: string[]) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("No user found");
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({ goals: goals })
+        .eq('id', user.id);
+
+      if (error) throw error;
+
+      setSelectedGoals(goals);
+      setStep(3);
+    } catch (error) {
+      console.error('Error saving goals:', error);
+      toast({
+        title: "Error saving goals",
+        description: "Please try again",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleGoalsRanked = () => {
-    setStep(4);
+  const handleGoalsRanked = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("No user found");
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({ 
+          goals: selectedGoals,
+          onboarding_step: 4
+        })
+        .eq('id', user.id);
+
+      if (error) throw error;
+      setStep(4);
+    } catch (error) {
+      console.error('Error updating ranked goals:', error);
+      toast({
+        title: "Error saving ranked goals",
+        description: "Please try again",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handlePersonalityComplete = async (personalityData: any) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("No user found");
+
+      // Save personality assessment
+      const { error: personalityError } = await supabase
+        .from('personality_assessment')
+        .insert([
+          {
+            user_id: user.id,
+            social_energy: personalityData.social_energy,
+            social_energy_notes: personalityData.social_energy_notes,
+            social_style: personalityData.social_style,
+            social_style_notes: personalityData.social_style_notes,
+            planning_style: personalityData.planning_style,
+            planning_style_notes: personalityData.planning_style_notes
+          }
+        ]);
+
+      if (personalityError) throw personalityError;
+
+      // Update profile completion status
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ 
+          onboarding_completed: true,
+          personality_traits: personalityData
+        })
+        .eq('id', user.id);
+
+      if (profileError) throw profileError;
+
+      onComplete();
+    } catch (error) {
+      console.error('Error saving personality assessment:', error);
+      toast({
+        title: "Error saving personality assessment",
+        description: "Please try again",
+        variant: "destructive",
+      });
+    }
   };
 
   console.log('Current step:', step);
@@ -41,7 +128,7 @@ const OnboardingSplash = ({ onComplete }: OnboardingSplashProps) => {
 
   if (step === 4) {
     console.log('Rendering PersonalityAssessment');
-    return <PersonalityAssessment />;
+    return <PersonalityAssessment onComplete={handlePersonalityComplete} />;
   }
 
   return (

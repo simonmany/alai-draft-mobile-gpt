@@ -5,12 +5,25 @@ import { Textarea } from "@/components/ui/textarea";
 import AlCharacter from "./AlCharacter";
 import InterestsSelection from "./InterestsSelection";
 
+interface PersonalityData {
+  social_energy: string;
+  social_energy_notes: string;
+  social_style: string;
+  social_style_notes: string;
+  planning_style: string;
+  planning_style_notes: string;
+}
+
 interface Question {
   id: string;
   title: string;
   description: string;
   options: string[];
-  field: "social_energy" | "social_style" | "planning_style";
+  field: keyof Omit<PersonalityData, "social_energy_notes" | "social_style_notes" | "planning_style_notes">;
+}
+
+interface PersonalityAssessmentProps {
+  onComplete: (data: PersonalityData) => Promise<void>;
 }
 
 const questions: Question[] = [
@@ -55,10 +68,10 @@ const questions: Question[] = [
   }
 ];
 
-const PersonalityAssessment = () => {
+const PersonalityAssessment = ({ onComplete }: PersonalityAssessmentProps) => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [isNodding, setIsNodding] = useState(false);
-  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [answers, setAnswers] = useState<Partial<PersonalityData>>({});
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [showInterests, setShowInterests] = useState(false);
 
@@ -74,13 +87,23 @@ const PersonalityAssessment = () => {
 
   const handleNoteChange = (note: string) => {
     const question = questions[currentQuestion];
-    setNotes(prev => ({ ...prev, [question.field + "_notes"]: note }));
+    const noteField = `${question.field}_notes` as keyof PersonalityData;
+    setNotes(prev => ({ ...prev, [noteField]: note }));
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (currentQuestion < questions.length - 1) {
       setCurrentQuestion(prev => prev + 1);
     } else {
+      const personalityData: PersonalityData = {
+        social_energy: answers.social_energy || '',
+        social_energy_notes: notes.social_energy_notes || '',
+        social_style: answers.social_style || '',
+        social_style_notes: notes.social_style_notes || '',
+        planning_style: answers.planning_style || '',
+        planning_style_notes: notes.planning_style_notes || ''
+      };
+      await onComplete(personalityData);
       setShowInterests(true);
     }
   };
@@ -129,7 +152,7 @@ const PersonalityAssessment = () => {
 
         <Textarea
           placeholder="Say More? (Optional)"
-          value={notes[question.field + "_notes"] || ""}
+          value={notes[`${question.field}_notes`] || ""}
           onChange={(e) => handleNoteChange(e.target.value)}
           className="mt-4"
         />
