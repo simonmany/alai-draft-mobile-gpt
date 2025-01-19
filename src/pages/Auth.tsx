@@ -126,25 +126,53 @@ const Auth = () => {
       setError(null);
       setLastSubmitTime(now);
 
-      // Generate a random password that meets common requirements
+      // First, check if user exists
+      const { data: { users }, error: getUserError } = await supabase.auth.admin.listUsers({
+        filters: {
+          email: values.email
+        }
+      });
+
+      if (getUserError) throw getUserError;
+
+      // Generate a secure random password
       const randomPassword = Math.random().toString(36).slice(-12) + 
                            Math.random().toString(36).toUpperCase().slice(-4) + 
                            "!2";
 
-      const { error: signUpError } = await supabase.auth.signUp({
-        email: values.email,
-        password: randomPassword,
-        options: {
-          emailRedirectTo: window.location.origin,
+      if (users && users.length > 0) {
+        // User exists, attempt to sign in
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: values.email,
+          password: randomPassword,
+        });
+
+        if (signInError) {
+          toast({
+            title: "Account exists",
+            description: "This email is already registered. Please use the sign in option below.",
+            variant: "destructive",
+          });
+          setShowNewUserFlow(false);
+          return;
         }
-      });
+      } else {
+        // New user, proceed with signup
+        const { error: signUpError } = await supabase.auth.signUp({
+          email: values.email,
+          password: randomPassword,
+          options: {
+            emailRedirectTo: window.location.origin,
+          }
+        });
 
-      if (signUpError) throw signUpError;
+        if (signUpError) throw signUpError;
 
-      toast({
-        title: "Success",
-        description: "Please check your email to verify your account",
-      });
+        toast({
+          title: "Success",
+          description: "Please check your email to verify your account",
+        });
+      }
     } catch (error) {
       console.error('Error in email signup:', error);
       let errorMessage = "Failed to sign up";
@@ -154,9 +182,14 @@ const Auth = () => {
           case 429:
             errorMessage = "Please wait before trying again";
             break;
+          case 422:
+            errorMessage = "This email is already registered. Please sign in instead.";
+            setShowNewUserFlow(false);
+            break;
           case 400:
             if (error.message.includes("already registered")) {
               errorMessage = "This email is already registered. Please sign in instead.";
+              setShowNewUserFlow(false);
             }
             break;
           default:
