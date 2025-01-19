@@ -58,18 +58,18 @@ const Auth = () => {
 
           console.log("Profile data:", profile);
 
-          if (profile) {
-            if (!profile.onboarding_completed) {
-              if (!profile.phone_number) {
-                setShowNewUserFlow(true);
-                setSignupStep('phone');
-              } else {
-                setShowOnboarding(true);
-              }
+          if (!profile?.onboarding_completed) {
+            if (!profile?.phone_number) {
+              setShowNewUserFlow(true);
+              setSignupStep('phone');
             } else {
-              navigate("/", { replace: true });
+              setShowOnboarding(true);
             }
+            setIsLoading(false);
+            return;
           }
+          
+          navigate("/", { replace: true });
         }
       } catch (error) {
         console.error('Error in checkUser:', error);
@@ -90,7 +90,6 @@ const Auth = () => {
       console.log("Auth state change:", event, session);
       
       if (event === 'TOKEN_REFRESHED') {
-        // Successfully refreshed token, no action needed
         return;
       }
       
@@ -106,19 +105,17 @@ const Auth = () => {
 
           console.log("Profile data on auth change:", profile);
 
-          if (profile) {
-            if (!profile.onboarding_completed) {
-              if (!profile.phone_number) {
-                setShowNewUserFlow(true);
-                setSignupStep('phone');
-                return;
-              } else {
-                setShowOnboarding(true);
-                return;
-              }
+          if (!profile?.onboarding_completed) {
+            if (!profile?.phone_number) {
+              setShowNewUserFlow(true);
+              setSignupStep('phone');
+              return;
+            } else {
+              setShowOnboarding(true);
+              return;
             }
-            navigate("/", { replace: true });
           }
+          navigate("/", { replace: true });
         } catch (error) {
           console.error('Error fetching profile:', error);
           toast({
@@ -292,7 +289,7 @@ const Auth = () => {
 
       if (updateError) throw updateError;
 
-      navigate("/");
+      navigate("/", { replace: true });
       toast({
         title: "Welcome!",
         description: "Your profile has been set up successfully.",
