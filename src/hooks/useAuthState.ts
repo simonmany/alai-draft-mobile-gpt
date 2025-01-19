@@ -26,7 +26,11 @@ export const useAuthState = () => {
 
           if (profileError) {
             console.error("Profile fetch error:", profileError);
-            throw profileError;
+            // If the profile doesn't exist, sign out and reset
+            await supabase.auth.signOut();
+            setCurrentStep("email");
+            setIsLoading(false);
+            return;
           }
 
           console.log("Profile data:", profile);
@@ -59,6 +63,9 @@ export const useAuthState = () => {
         }
       } catch (error) {
         console.error("Session check error:", error);
+        // If there's any error with the session, sign out and reset
+        await supabase.auth.signOut();
+        setCurrentStep("email");
         setError(error instanceof Error ? error.message : "An error occurred");
       } finally {
         setIsLoading(false);
@@ -80,6 +87,8 @@ export const useAuthState = () => {
 
           if (profileError) {
             console.error("Profile fetch error:", profileError);
+            await supabase.auth.signOut();
+            setCurrentStep("email");
             return;
           }
 
@@ -111,6 +120,8 @@ export const useAuthState = () => {
           }
         } catch (error) {
           console.error("Error handling auth state change:", error);
+          await supabase.auth.signOut();
+          setCurrentStep("email");
         }
       } else if (event === 'SIGNED_OUT') {
         setCurrentStep("email");
