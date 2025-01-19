@@ -41,13 +41,17 @@ const Auth = () => {
       });
 
       if (signUpError) {
-        if (signUpError instanceof AuthApiError && signUpError.status === 422) {
-          toast({
-            title: "Account exists",
-            description: "This email is already registered. Please sign in instead.",
-            variant: "destructive",
-          });
-          return;
+        if (signUpError instanceof AuthApiError) {
+          if (signUpError.status === 422) {
+            // User already exists, show sign in suggestion
+            toast({
+              title: "Account exists",
+              description: "This email is already registered. Please sign in instead.",
+              variant: "destructive",
+            });
+            setCurrentStep("login");
+            return;
+          }
         }
         throw signUpError;
       }
