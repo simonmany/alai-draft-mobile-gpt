@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { AuthApiError } from "@supabase/supabase-js";
+import { AuthApiError, AuthError } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import AuthUI from "@/components/auth/AuthUI";
@@ -56,7 +56,9 @@ const Auth = () => {
       });
     } catch (error) {
       console.error('Error in email signup:', error);
-      const errorMessage = error instanceof Error ? getAuthErrorMessage(error) : "An unexpected error occurred";
+      const errorMessage = error instanceof AuthError 
+        ? getAuthErrorMessage(error)
+        : "An unexpected error occurred";
       setError(errorMessage);
       toast({
         title: "Error",
