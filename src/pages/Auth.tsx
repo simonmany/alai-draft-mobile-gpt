@@ -44,6 +44,8 @@ const Auth = () => {
             .eq('id', session.user.id)
             .single();
 
+          console.log("Profile data:", profile);
+
           if (profile) {
             if (!profile.onboarding_completed) {
               if (!profile.phone_number) {
@@ -75,26 +77,27 @@ const Auth = () => {
       console.log("Auth state change:", event, session);
       
       if (event === 'SIGNED_IN' && session) {
-        // Check if this is a new signup or existing user
         const { data: profile } = await supabase
           .from('profiles')
           .select('onboarding_completed, phone_number')
           .eq('id', session.user.id)
           .single();
 
-        console.log("Profile data:", profile);
+        console.log("Profile data on auth change:", profile);
 
         if (profile) {
           if (!profile.onboarding_completed) {
             if (!profile.phone_number) {
               setShowNewUserFlow(true);
               setSignupStep('phone');
+              return; // Don't navigate to home
             } else {
               setShowOnboarding(true);
+              return; // Don't navigate to home
             }
-          } else {
-            navigate("/");
           }
+          // Only navigate home if onboarding is completed
+          navigate("/");
         }
       } else if (event === 'SIGNED_OUT') {
         setError(null);
