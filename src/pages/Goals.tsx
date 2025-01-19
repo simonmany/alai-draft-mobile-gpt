@@ -30,42 +30,19 @@ const Goals = () => {
   const handleSignOut = async () => {
     try {
       setIsSigningOut(true);
-      
-      // First check if we have a valid session
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        // If no session exists, just redirect to auth page
-        navigate("/auth");
-        return;
-      }
-
       const { error } = await supabase.auth.signOut();
       
       if (error) {
-        // If we get a 403/user not found error, the session is already invalid
-        if (error.status === 403 && error.message.includes('user_not_found')) {
-          // Just redirect to auth page
-          navigate("/auth");
-          return;
-        }
-        
         throw error;
       }
 
-      navigate("/auth");
-      toast({
-        title: "Signed out",
-        description: "You have been successfully signed out.",
-      });
+      // Let the auth state change in App.tsx handle the navigation
     } catch (error) {
       console.error('Sign out error:', error);
-      // Force redirect to auth page if we can't properly sign out
-      navigate("/auth");
       toast({
         variant: "destructive",
         title: "Error signing out",
-        description: "You have been signed out due to an expired session.",
+        description: "Please try again.",
       });
     } finally {
       setIsSigningOut(false);
