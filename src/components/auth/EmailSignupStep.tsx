@@ -2,7 +2,7 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Form, FormField, FormItem, FormControl } from "@/components/ui/form";
+import { Form, FormField, FormItem, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
@@ -12,9 +12,10 @@ const emailSchema = z.object({
 
 interface EmailSignupStepProps {
   onSubmit: (values: z.infer<typeof emailSchema>) => Promise<void>;
+  isSubmitting?: boolean;
 }
 
-const EmailSignupStep = ({ onSubmit }: EmailSignupStepProps) => {
+const EmailSignupStep = ({ onSubmit, isSubmitting }: EmailSignupStepProps) => {
   const form = useForm<z.infer<typeof emailSchema>>({
     resolver: zodResolver(emailSchema),
     defaultValues: {
@@ -43,14 +44,20 @@ const EmailSignupStep = ({ onSubmit }: EmailSignupStepProps) => {
                     placeholder="Enter your email"
                     type="email"
                     className="text-lg h-12"
+                    disabled={isSubmitting}
                     {...field}
                   />
                 </FormControl>
+                <FormMessage />
               </FormItem>
             )}
           />
-          <Button type="submit" className="w-full text-lg h-12">
-            Continue
+          <Button 
+            type="submit" 
+            className="w-full text-lg h-12"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "Please wait..." : "Continue"}
           </Button>
         </form>
       </Form>

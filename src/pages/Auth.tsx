@@ -112,7 +112,7 @@ const Auth = () => {
         return;
       }
 
-      if (now - lastSubmitTime < 55000) { // 55 seconds in milliseconds
+      if (now - lastSubmitTime < 55000) {
         const remainingTime = Math.ceil((55000 - (now - lastSubmitTime)) / 1000);
         toast({
           title: "Please wait",
@@ -126,9 +126,17 @@ const Auth = () => {
       setError(null);
       setLastSubmitTime(now);
 
+      // Generate a random password that meets common requirements
+      const randomPassword = Math.random().toString(36).slice(-12) + 
+                           Math.random().toString(36).toUpperCase().slice(-4) + 
+                           "!2";
+
       const { error: signUpError } = await supabase.auth.signUp({
         email: values.email,
-        password: "temporary-password",
+        password: randomPassword,
+        options: {
+          emailRedirectTo: window.location.origin,
+        }
       });
 
       if (signUpError) throw signUpError;
@@ -142,10 +150,17 @@ const Auth = () => {
       let errorMessage = "Failed to sign up";
       
       if (error instanceof AuthApiError) {
-        if (error.message.includes('rate_limit')) {
-          errorMessage = "Please wait 55 seconds before trying again";
-        } else {
-          errorMessage = error.message;
+        switch (error.status) {
+          case 429:
+            errorMessage = "Please wait before trying again";
+            break;
+          case 400:
+            if (error.message.includes("already registered")) {
+              errorMessage = "This email is already registered. Please sign in instead.";
+            }
+            break;
+          default:
+            errorMessage = error.message;
         }
       }
       
@@ -236,7 +251,10 @@ const Auth = () => {
       <div className="min-h-screen bg-assistant-background flex items-center justify-center p-4">
         <div className="w-full max-w-md space-y-8">
           {signupStep === 'email' ? (
-            <EmailSignupStep onSubmit={handleEmailSubmit} />
+            <EmailSignupStep 
+              onSubmit={handleEmailSubmit} 
+              isSubmitting={isSubmitting}
+            />
           ) : (
             <PhoneSignupStep onSubmit={handlePhoneSubmit} />
           )}
