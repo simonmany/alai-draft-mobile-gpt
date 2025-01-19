@@ -114,7 +114,6 @@ const Auth = () => {
         return;
       }
 
-      // Check rate limiting
       const timeSinceLastSubmit = now - lastSubmitTime;
       if (timeSinceLastSubmit < RATE_LIMIT_SECONDS * 1000) {
         const remainingTime = Math.ceil((RATE_LIMIT_SECONDS * 1000 - timeSinceLastSubmit) / 1000);
@@ -130,13 +129,11 @@ const Auth = () => {
       setError(null);
       setLastSubmitTime(now);
 
-      // Generate a secure random password
       const randomPassword = Math.random().toString(36).slice(-12) + 
                            Math.random().toString(36).toUpperCase().slice(-4) + 
                            "!2";
 
-      // Attempt to sign up directly
-      const { error: signUpError } = await supabase.auth.signUp({
+      const { data, error: signUpError } = await supabase.auth.signUp({
         email: values.email,
         password: randomPassword,
         options: {
@@ -150,7 +147,6 @@ const Auth = () => {
             case 429:
               throw new Error("Please wait before trying again");
             case 422:
-              // User already exists, show sign in message
               toast({
                 title: "Account exists",
                 description: "This email is already registered. Please sign in instead.",
@@ -165,10 +161,16 @@ const Auth = () => {
         throw signUpError;
       }
 
-      toast({
-        title: "Success",
-        description: "Please check your email to verify your account",
-      });
+      // If signup is successful and user is confirmed
+      if (data.user?.confirmed_at) {
+        setShowNewUserFlow(true);
+        setSignupStep('phone');
+      } else {
+        toast({
+          title: "Success",
+          description: "Please check your email to verify your account",
+        });
+      }
     } catch (error) {
       console.error('Error in email signup:', error);
       let errorMessage = "Failed to sign up";
