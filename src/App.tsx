@@ -42,7 +42,7 @@ function App() {
       setIsAuthenticated(true);
 
       // Verify the session is valid by making a test query
-      return supabase
+      supabase
         .from('profiles')
         .select('id')
         .eq('id', session.user.id)
