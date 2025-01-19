@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 export type AuthStep = "login" | "email" | "phone" | "personality" | "complete";
 
 export const useAuthState = () => {
-  const [currentStep, setCurrentStep] = useState<AuthStep>("login");
+  const [currentStep, setCurrentStep] = useState<AuthStep>("email");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
