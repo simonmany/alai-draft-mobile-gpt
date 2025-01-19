@@ -32,32 +32,35 @@ function App() {
 
   useEffect(() => {
     // Check initial auth state
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
       if (!session) {
         setIsAuthenticated(false);
         return;
       }
 
-      // Set initial auth state based on session existence
-      setIsAuthenticated(true);
+      try {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', session.user.id)
+          .single();
 
-      // Verify the session is valid by making a test query
-      supabase
-        .from('profiles')
-        .select('id')
-        .eq('id', session.user.id)
-        .single()
-        .then(({ error: profileError }) => {
-          if (profileError) {
-            console.error("Profile verification failed:", profileError);
-            handleInvalidSession();
-          }
-        })
-        .catch((error) => {
-          console.error("Error verifying profile:", error);
-          handleInvalidSession();
-        });
-    });
+        if (profileError) {
+          console.error("Profile verification failed:", profileError);
+          await handleInvalidSession();
+          return;
+        }
+
+        setIsAuthenticated(true);
+      } catch (error) {
+        console.error("Error verifying profile:", error);
+        await handleInvalidSession();
+      }
+    };
+
+    checkSession();
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
