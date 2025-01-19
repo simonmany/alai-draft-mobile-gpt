@@ -51,12 +51,30 @@ const Auth = () => {
         throw signUpError;
       }
 
+      // Check if user exists and move to phone step
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('phone_number, onboarding_completed, onboarding_step')
+          .eq('id', session.user.id)
+          .single();
+
+        console.log("Profile state after email:", profile);
+
+        if (!profile?.phone_number) {
+          setCurrentStep("phone");
+        } else if (!profile?.onboarding_completed) {
+          setCurrentStep("personality");
+        } else {
+          setCurrentStep("complete");
+        }
+      }
+
       toast({
         title: "Success",
         description: "Please check your email to verify your account",
       });
-
-      // The auth state change listener will handle the transition to the next step
     } catch (error) {
       console.error("Error in email signup:", error);
       const errorMessage =
@@ -90,6 +108,7 @@ const Auth = () => {
 
       if (updateError) throw updateError;
 
+      console.log("Moving to personality step after phone update");
       setCurrentStep("personality");
       
       toast({
@@ -124,6 +143,7 @@ const Auth = () => {
 
       if (updateError) throw updateError;
 
+      console.log("Completing onboarding");
       setCurrentStep("complete");
       navigate("/", { replace: true });
     } catch (error) {

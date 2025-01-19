@@ -35,7 +35,8 @@ export const useAuthState = () => {
             setCurrentStep("complete");
           }
         } else {
-          setCurrentStep("login");
+          // No session means we start with email
+          setCurrentStep("email");
         }
       } catch (error) {
         console.error("Session check error:", error);
@@ -74,7 +75,7 @@ export const useAuthState = () => {
           setCurrentStep("complete");
         }
       } else if (event === 'SIGNED_OUT') {
-        setCurrentStep("login");
+        setCurrentStep("email");
         setError(null);
       }
     });
