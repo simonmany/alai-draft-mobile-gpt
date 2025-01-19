@@ -36,13 +36,25 @@ const Auth = () => {
   useEffect(() => {
     const checkUser = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          if (sessionError.message.includes('refresh_token_not_found')) {
+            await supabase.auth.signOut();
+            setIsLoading(false);
+            return;
+          }
+          throw sessionError;
+        }
+
         if (session?.user) {
-          const { data: profile } = await supabase
+          const { data: profile, error: profileError } = await supabase
             .from('profiles')
             .select('onboarding_completed, onboarding_step, phone_number')
             .eq('id', session.user.id)
             .single();
+
+          if (profileError) throw profileError;
 
           console.log("Profile data:", profile);
 
@@ -61,9 +73,10 @@ const Auth = () => {
         }
       } catch (error) {
         console.error('Error in checkUser:', error);
+        await supabase.auth.signOut();
         toast({
-          title: "Error",
-          description: "Failed to check user session",
+          title: "Session Error",
+          description: "Please sign in again",
           variant: "destructive",
         });
       } finally {
@@ -76,27 +89,43 @@ const Auth = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log("Auth state change:", event, session);
       
+      if (event === 'TOKEN_REFRESHED') {
+        // Successfully refreshed token, no action needed
+        return;
+      }
+      
       if (event === 'SIGNED_IN' && session) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('onboarding_completed, phone_number')
-          .eq('id', session.user.id)
-          .single();
+        try {
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('onboarding_completed, phone_number')
+            .eq('id', session.user.id)
+            .single();
 
-        console.log("Profile data on auth change:", profile);
+          if (profileError) throw profileError;
 
-        if (profile) {
-          if (!profile.onboarding_completed) {
-            if (!profile.phone_number) {
-              setShowNewUserFlow(true);
-              setSignupStep('phone');
-              return;
-            } else {
-              setShowOnboarding(true);
-              return;
+          console.log("Profile data on auth change:", profile);
+
+          if (profile) {
+            if (!profile.onboarding_completed) {
+              if (!profile.phone_number) {
+                setShowNewUserFlow(true);
+                setSignupStep('phone');
+                return;
+              } else {
+                setShowOnboarding(true);
+                return;
+              }
             }
+            navigate("/", { replace: true });
           }
-          navigate("/", { replace: true });
+        } catch (error) {
+          console.error('Error fetching profile:', error);
+          toast({
+            title: "Error",
+            description: "Failed to load your profile. Please try again.",
+            variant: "destructive",
+          });
         }
       } else if (event === 'SIGNED_OUT') {
         setError(null);
