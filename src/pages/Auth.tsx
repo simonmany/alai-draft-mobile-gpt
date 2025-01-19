@@ -28,24 +28,29 @@ const Auth = () => {
   const [showNewUserFlow, setShowNewUserFlow] = useState(false);
   const [signupStep, setSignupStep] = useState<'email' | 'phone'>('email');
   const [isLoading, setIsLoading] = useState(true);
-  const [currentUser, setCurrentUser] = useState<any>(null);
 
   useEffect(() => {
     const checkUser = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.user) {
-          setCurrentUser(session.user);
           const { data: profile } = await supabase
             .from('profiles')
-            .select('onboarding_completed, onboarding_step')
+            .select('onboarding_completed, onboarding_step, phone_number')
             .eq('id', session.user.id)
             .single();
 
-          if (profile && !profile.onboarding_completed) {
-            setShowOnboarding(true);
-          } else {
-            navigate("/");
+          if (profile) {
+            if (!profile.onboarding_completed) {
+              if (!profile.phone_number) {
+                setShowNewUserFlow(true);
+                setSignupStep('phone');
+              } else {
+                setShowOnboarding(true);
+              }
+            } else {
+              navigate("/");
+            }
           }
         }
       } catch (error) {
@@ -64,12 +69,26 @@ const Auth = () => {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session) {
-        setCurrentUser(session.user);
-        setSignupStep('phone');
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('phone_number, onboarding_completed')
+          .eq('id', session.user.id)
+          .single();
+
+        if (profile) {
+          if (!profile.phone_number) {
+            setShowNewUserFlow(true);
+            setSignupStep('phone');
+          } else if (!profile.onboarding_completed) {
+            setShowOnboarding(true);
+          } else {
+            navigate("/");
+          }
+        }
       } else if (event === 'SIGNED_OUT') {
-        setCurrentUser(null);
         setError(null);
         setShowOnboarding(false);
+        setShowNewUserFlow(false);
         setSignupStep('email');
       }
     });
@@ -89,17 +108,17 @@ const Auth = () => {
 
       if (signUpError) throw signUpError;
 
-      setSignupStep('phone');
       toast({
         title: "Success",
         description: "Please check your email to verify your account",
       });
     } catch (error) {
       console.error('Error in email signup:', error);
-      setError(error instanceof AuthApiError ? error.message : "Failed to sign up");
+      const errorMessage = error instanceof AuthApiError ? error.message : "Failed to sign up";
+      setError(errorMessage);
       toast({
         title: "Error",
-        description: error instanceof AuthApiError ? error.message : "Failed to sign up",
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -123,16 +142,19 @@ const Auth = () => {
 
       if (updateError) throw updateError;
 
+      setShowNewUserFlow(false);
       setShowOnboarding(true);
+      
       toast({
         title: "Success",
         description: "Phone number updated successfully",
       });
     } catch (error) {
       console.error('Error in phone signup:', error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to update phone number";
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to update phone number",
+        description: errorMessage,
         variant: "destructive",
       });
     }
