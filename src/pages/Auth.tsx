@@ -28,6 +28,8 @@ const Auth = () => {
   const [showNewUserFlow, setShowNewUserFlow] = useState(false);
   const [signupStep, setSignupStep] = useState<'email' | 'phone'>('email');
   const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [lastSubmitTime, setLastSubmitTime] = useState(0);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -100,7 +102,30 @@ const Auth = () => {
 
   const handleEmailSubmit = async (values: EmailFormValues) => {
     try {
+      const now = Date.now();
+      if (isSubmitting) {
+        toast({
+          title: "Please wait",
+          description: "Your previous request is still processing",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (now - lastSubmitTime < 55000) { // 55 seconds in milliseconds
+        const remainingTime = Math.ceil((55000 - (now - lastSubmitTime)) / 1000);
+        toast({
+          title: "Please wait",
+          description: `You can try again in ${remainingTime} seconds`,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setIsSubmitting(true);
       setError(null);
+      setLastSubmitTime(now);
+
       const { error: signUpError } = await supabase.auth.signUp({
         email: values.email,
         password: "temporary-password",
@@ -114,13 +139,24 @@ const Auth = () => {
       });
     } catch (error) {
       console.error('Error in email signup:', error);
-      const errorMessage = error instanceof AuthApiError ? error.message : "Failed to sign up";
+      let errorMessage = "Failed to sign up";
+      
+      if (error instanceof AuthApiError) {
+        if (error.message.includes('rate_limit')) {
+          errorMessage = "Please wait 55 seconds before trying again";
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
       setError(errorMessage);
       toast({
         title: "Error",
         description: errorMessage,
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
