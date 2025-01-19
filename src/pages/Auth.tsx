@@ -20,6 +20,8 @@ const phoneSchema = z.object({
 type EmailFormValues = z.infer<typeof emailSchema>;
 type PhoneFormValues = z.infer<typeof phoneSchema>;
 
+const RATE_LIMIT_SECONDS = 60;
+
 const Auth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -112,11 +114,13 @@ const Auth = () => {
         return;
       }
 
-      if (now - lastSubmitTime < 55000) {
-        const remainingTime = Math.ceil((55000 - (now - lastSubmitTime)) / 1000);
+      // Check rate limiting
+      const timeSinceLastSubmit = now - lastSubmitTime;
+      if (timeSinceLastSubmit < RATE_LIMIT_SECONDS * 1000) {
+        const remainingTime = Math.ceil((RATE_LIMIT_SECONDS * 1000 - timeSinceLastSubmit) / 1000);
         toast({
-          title: "Please wait",
-          description: `You can try again in ${remainingTime} seconds`,
+          title: "Rate limit",
+          description: `Please wait ${remainingTime} seconds before trying again`,
           variant: "destructive",
         });
         return;
@@ -126,18 +130,15 @@ const Auth = () => {
       setError(null);
       setLastSubmitTime(now);
 
-      // Check if user exists using signInWithOtp
-      const { error: signInError } = await supabase.auth.signInWithOtp({
+      // Try to sign in first to check if user exists
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
         email: values.email,
+        // Use a dummy password since we don't know the actual one
+        password: "dummy-password-for-check"
       });
 
-      // Generate a secure random password
-      const randomPassword = Math.random().toString(36).slice(-12) + 
-                           Math.random().toString(36).toUpperCase().slice(-4) + 
-                           "!2";
-
-      if (!signInError) {
-        // User exists
+      if (!signInError || (signInError as AuthApiError).status === 400) {
+        // User exists (either signed in or wrong password)
         toast({
           title: "Account exists",
           description: "This email is already registered. Please use the sign in option below.",
@@ -145,23 +146,45 @@ const Auth = () => {
         });
         setShowNewUserFlow(false);
         return;
-      } else {
-        // New user, proceed with signup
-        const { error: signUpError } = await supabase.auth.signUp({
-          email: values.email,
-          password: randomPassword,
-          options: {
-            emailRedirectTo: window.location.origin,
-          }
-        });
-
-        if (signUpError) throw signUpError;
-
-        toast({
-          title: "Success",
-          description: "Please check your email to verify your account",
-        });
       }
+
+      // If we get here, user doesn't exist, proceed with signup
+      const randomPassword = Math.random().toString(36).slice(-12) + 
+                           Math.random().toString(36).toUpperCase().slice(-4) + 
+                           "!2";
+
+      const { error: signUpError } = await supabase.auth.signUp({
+        email: values.email,
+        password: randomPassword,
+        options: {
+          emailRedirectTo: window.location.origin,
+        }
+      });
+
+      if (signUpError) {
+        if (signUpError instanceof AuthApiError) {
+          switch (signUpError.status) {
+            case 429:
+              throw new Error("Please wait before trying again");
+            case 422:
+              toast({
+                title: "Account exists",
+                description: "This email is already registered. Please sign in instead.",
+                variant: "destructive",
+              });
+              setShowNewUserFlow(false);
+              return;
+            default:
+              throw signUpError;
+          }
+        }
+        throw signUpError;
+      }
+
+      toast({
+        title: "Success",
+        description: "Please check your email to verify your account",
+      });
     } catch (error) {
       console.error('Error in email signup:', error);
       let errorMessage = "Failed to sign up";
@@ -184,6 +207,8 @@ const Auth = () => {
           default:
             errorMessage = error.message;
         }
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
       }
       
       setError(errorMessage);
