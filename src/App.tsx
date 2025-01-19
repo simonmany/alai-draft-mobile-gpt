@@ -27,7 +27,7 @@ function App() {
       setIsAuthenticated(true);
 
       // Verify the session is valid by making a test query
-      supabase
+      void supabase
         .from('profiles')
         .select('id')
         .eq('id', session.user.id)
@@ -35,12 +35,12 @@ function App() {
         .then(({ error: profileError }) => {
           if (profileError) {
             console.error("Profile verification failed:", profileError);
-            handleInvalidSession();
+            void handleInvalidSession();
           }
         })
         .catch((error) => {
           console.error("Error verifying profile:", error);
-          handleInvalidSession();
+          void handleInvalidSession();
         });
     });
 
@@ -80,7 +80,7 @@ function App() {
 
         if (profileError) {
           console.error("Profile verification failed:", profileError);
-          handleInvalidSession();
+          await handleInvalidSession();
         }
         return;
       }
@@ -88,7 +88,7 @@ function App() {
       // For token/session related errors, sign out the user
       if (event === 'TOKEN_REFRESHED' && !session) {
         console.log('Token refresh failed, signing out');
-        handleInvalidSession();
+        await handleInvalidSession();
         return;
       }
 
