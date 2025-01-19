@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import Layout from "@/components/Layout";
 import Index from "@/pages/Index";
 import Calendar from "@/pages/Calendar";
@@ -12,22 +13,53 @@ import Auth from "@/pages/Auth";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     // Check initial auth state
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        console.error("Session error:", error);
+        setIsAuthenticated(false);
+        return;
+      }
       setIsAuthenticated(!!session);
     });
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("Auth state change:", event);
+      
+      if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
+        setIsAuthenticated(false);
+        return;
+      }
+
+      // For token/session related errors, sign out the user
+      if (event === 'TOKEN_REFRESHED' && !session) {
+        console.log('Token refresh failed, signing out');
+        try {
+          await supabase.auth.signOut();
+          setIsAuthenticated(false);
+          toast({
+            title: "Session Expired",
+            description: "Please sign in again.",
+            variant: "destructive",
+          });
+        } catch (error) {
+          console.error("Error during sign out:", error);
+          setIsAuthenticated(false);
+        }
+        return;
+      }
+
       setIsAuthenticated(!!session);
     });
 
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [toast]);
 
   // Show loading state while checking auth
   if (isAuthenticated === null) {
