@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import AlCharacter from "./AlCharacter";
 import InterestsSelection from "./InterestsSelection";
 import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 
 interface PersonalityData {
   social_energy: string;
@@ -118,6 +119,16 @@ const PersonalityAssessment = ({ onComplete }: PersonalityAssessmentProps) => {
           planning_style_notes: notes.planning_style_notes || ''
         };
 
+        // Convert personalityData to a format that matches the Json type
+        const personalityJson: { [key: string]: Json } = {
+          social_energy: personalityData.social_energy,
+          social_energy_notes: personalityData.social_energy_notes,
+          social_style: personalityData.social_style,
+          social_style_notes: personalityData.social_style_notes,
+          planning_style: personalityData.planning_style,
+          planning_style_notes: personalityData.planning_style_notes
+        };
+
         // Save to personality_assessment table
         const { error: assessmentError } = await supabase
           .from('personality_assessment')
@@ -136,11 +147,11 @@ const PersonalityAssessment = ({ onComplete }: PersonalityAssessmentProps) => {
           return;
         }
 
-        // Update profiles table
+        // Update profiles table with the properly typed JSON
         const { error: profileError } = await supabase
           .from('profiles')
           .update({ 
-            personality_traits: personalityData,
+            personality_traits: personalityJson,
             onboarding_step: 4
           })
           .eq('id', user.id);
