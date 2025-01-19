@@ -8,6 +8,7 @@ import EmailSignupStep from "./EmailSignupStep";
 import PhoneSignupStep from "./PhoneSignupStep";
 import PersonalityAssessment from "../onboarding/personality/PersonalityAssessment";
 import { useAuthState } from "@/hooks/useAuthState";
+import type { Json } from "@/integrations/supabase/types";
 
 const AuthContainer = () => {
   const navigate = useNavigate();
@@ -117,11 +118,20 @@ const AuthContainer = () => {
                 const { data: { session } } = await supabase.auth.getSession();
                 if (!session?.user) throw new Error("No user found");
 
+                // Convert personalityData to a format that matches the Json type
+                const personalityJson: { [key: string]: Json } = {
+                  social_energy: personalityData.social_energy,
+                  social_energy_notes: personalityData.social_energy_notes,
+                  social_style: personalityData.social_style,
+                  social_style_notes: personalityData.social_style_notes,
+                  planning_style: personalityData.planning_style,
+                  planning_style_notes: personalityData.planning_style_notes
+                };
+
                 const { error: updateError } = await supabase
                   .from('profiles')
                   .update({ 
-                    onboarding_completed: true,
-                    personality_traits: personalityData,
+                    personality_traits: personalityJson,
                     onboarding_step: 3
                   })
                   .eq('id', session.user.id);
