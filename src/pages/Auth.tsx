@@ -72,19 +72,26 @@ const Auth = () => {
     checkUser();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("Auth state change:", event, session);
+      
       if (event === 'SIGNED_IN' && session) {
+        // Check if this is a new signup or existing user
         const { data: profile } = await supabase
           .from('profiles')
-          .select('phone_number, onboarding_completed')
+          .select('onboarding_completed, phone_number')
           .eq('id', session.user.id)
           .single();
 
+        console.log("Profile data:", profile);
+
         if (profile) {
-          if (!profile.phone_number) {
-            setShowNewUserFlow(true);
-            setSignupStep('phone');
-          } else if (!profile.onboarding_completed) {
-            setShowOnboarding(true);
+          if (!profile.onboarding_completed) {
+            if (!profile.phone_number) {
+              setShowNewUserFlow(true);
+              setSignupStep('phone');
+            } else {
+              setShowOnboarding(true);
+            }
           } else {
             navigate("/");
           }
