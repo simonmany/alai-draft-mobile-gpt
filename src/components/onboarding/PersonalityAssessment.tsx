@@ -2,8 +2,10 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
 import AlCharacter from "./AlCharacter";
 import InterestsSelection from "./InterestsSelection";
+import { supabase } from "@/integrations/supabase/client";
 
 interface PersonalityData {
   social_energy: string;
@@ -74,6 +76,7 @@ const PersonalityAssessment = ({ onComplete }: PersonalityAssessmentProps) => {
   const [answers, setAnswers] = useState<Partial<PersonalityData>>({});
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [showInterests, setShowInterests] = useState(false);
+  const { toast } = useToast();
 
   const handleOptionSelect = (option: string) => {
     const question = questions[currentQuestion];
@@ -92,19 +95,76 @@ const PersonalityAssessment = ({ onComplete }: PersonalityAssessmentProps) => {
   };
 
   const handleContinue = async () => {
-    if (currentQuestion < questions.length - 1) {
-      setCurrentQuestion(prev => prev + 1);
-    } else {
-      const personalityData: PersonalityData = {
-        social_energy: answers.social_energy || '',
-        social_energy_notes: notes.social_energy_notes || '',
-        social_style: answers.social_style || '',
-        social_style_notes: notes.social_style_notes || '',
-        planning_style: answers.planning_style || '',
-        planning_style_notes: notes.planning_style_notes || ''
-      };
-      await onComplete(personalityData);
-      setShowInterests(true);
+    try {
+      if (currentQuestion < questions.length - 1) {
+        setCurrentQuestion(prev => prev + 1);
+      } else {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          toast({
+            title: "Error",
+            description: "No user found. Please try logging in again.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        const personalityData: PersonalityData = {
+          social_energy: answers.social_energy || '',
+          social_energy_notes: notes.social_energy_notes || '',
+          social_style: answers.social_style || '',
+          social_style_notes: notes.social_style_notes || '',
+          planning_style: answers.planning_style || '',
+          planning_style_notes: notes.planning_style_notes || ''
+        };
+
+        // Save to personality_assessment table
+        const { error: assessmentError } = await supabase
+          .from('personality_assessment')
+          .insert([{
+            user_id: user.id,
+            ...personalityData
+          }]);
+
+        if (assessmentError) {
+          console.error('Error saving personality assessment:', assessmentError);
+          toast({
+            title: "Error",
+            description: "Failed to save personality assessment. Please try again.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        // Update profiles table
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({ 
+            personality_traits: personalityData,
+            onboarding_step: 4
+          })
+          .eq('id', user.id);
+
+        if (profileError) {
+          console.error('Error updating profile:', profileError);
+          toast({
+            title: "Error",
+            description: "Failed to update profile. Please try again.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        await onComplete(personalityData);
+        setShowInterests(true);
+      }
+    } catch (error) {
+      console.error('Error in handleContinue:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
