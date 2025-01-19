@@ -27,46 +27,51 @@ const Auth = () => {
   const { currentStep, setCurrentStep, isLoading, error, setError } = useAuthState();
 
   const handleEmailSubmit = async (values: EmailFormValues) => {
-    try {
-      const randomPassword = Math.random().toString(36).slice(-12) + 
-                           Math.random().toString(36).toUpperCase().slice(-4) + 
-                           "!2";
+  try {
+    const randomPassword =
+      Math.random().toString(36).slice(-12) +
+      Math.random().toString(36).toUpperCase().slice(-4) +
+      "!2";
 
-      const { error: signUpError } = await supabase.auth.signUp({
-        email: values.email,
-        password: randomPassword,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth`,
-        }
-      });
+    const { error: signUpError } = await supabase.auth.signUp({
+      email: values.email,
+      password: randomPassword,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth`,
+      },
+    });
 
-      if (signUpError) {
-        if (signUpError instanceof AuthApiError && signUpError.status === 422) {
-          const errorMessage = getAuthErrorMessage(signUpError);
-          setError(errorMessage);
-          setCurrentStep("login");
-          return;
-        }
-        throw signUpError;
+    if (signUpError) {
+      if (signUpError instanceof AuthApiError && signUpError.status === 422) {
+        const errorMessage = getAuthErrorMessage(signUpError);
+        setError(errorMessage);
+        setCurrentStep("login");
+        return;
       }
+      throw signUpError;
+    }
 
-      toast({
-        title: "Success",
-        description: "Please check your email to verify your account",
-      });
-    } catch (error) {
-      console.error('Error in email signup:', error);
-      const errorMessage = error instanceof AuthError 
+    toast({
+      title: "Success",
+      description: "Please check your email to verify your account",
+    });
+
+    // Transition to the phone step after successful email submission
+    setCurrentStep("phone");
+  } catch (error) {
+    console.error("Error in email signup:", error);
+    const errorMessage =
+      error instanceof AuthError
         ? getAuthErrorMessage(error)
         : "An unexpected error occurred";
-      setError(errorMessage);
-      toast({
-        title: "Error",
-        description: errorMessage,
-        variant: "destructive",
-      });
-    }
-  };
+    setError(errorMessage);
+    toast({
+      title: "Error",
+      description: errorMessage,
+      variant: "destructive",
+    });
+  }
+};
 
   const handlePhoneSubmit = async (values: PhoneFormValues) => {
     try {
