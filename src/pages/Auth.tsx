@@ -130,29 +130,12 @@ const Auth = () => {
       setError(null);
       setLastSubmitTime(now);
 
-      // Try to sign in first to check if user exists
-      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-        email: values.email,
-        // Use a dummy password since we don't know the actual one
-        password: "dummy-password-for-check"
-      });
-
-      if (!signInError || (signInError as AuthApiError).status === 400) {
-        // User exists (either signed in or wrong password)
-        toast({
-          title: "Account exists",
-          description: "This email is already registered. Please use the sign in option below.",
-          variant: "destructive",
-        });
-        setShowNewUserFlow(false);
-        return;
-      }
-
-      // If we get here, user doesn't exist, proceed with signup
+      // Generate a secure random password
       const randomPassword = Math.random().toString(36).slice(-12) + 
                            Math.random().toString(36).toUpperCase().slice(-4) + 
                            "!2";
 
+      // Attempt to sign up directly
       const { error: signUpError } = await supabase.auth.signUp({
         email: values.email,
         password: randomPassword,
@@ -167,6 +150,7 @@ const Auth = () => {
             case 429:
               throw new Error("Please wait before trying again");
             case 422:
+              // User already exists, show sign in message
               toast({
                 title: "Account exists",
                 description: "This email is already registered. Please sign in instead.",
