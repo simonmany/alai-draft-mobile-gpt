@@ -55,7 +55,7 @@ const Auth = () => {
                 setShowOnboarding(true);
               }
             } else {
-              navigate("/");
+              navigate("/", { replace: true });
             }
           }
         }
@@ -90,14 +90,13 @@ const Auth = () => {
             if (!profile.phone_number) {
               setShowNewUserFlow(true);
               setSignupStep('phone');
-              return; // Don't navigate to home
+              return;
             } else {
               setShowOnboarding(true);
-              return; // Don't navigate to home
+              return;
             }
           }
-          // Only navigate home if onboarding is completed
-          navigate("/");
+          navigate("/", { replace: true });
         }
       } else if (event === 'SIGNED_OUT') {
         setError(null);
@@ -147,7 +146,7 @@ const Auth = () => {
         email: values.email,
         password: randomPassword,
         options: {
-          emailRedirectTo: window.location.origin,
+          emailRedirectTo: `${window.location.origin}/auth`,
         }
       });
 
@@ -178,7 +177,6 @@ const Auth = () => {
         });
       }
 
-      // After successful signup, move to phone step
       setSignupStep('phone');
     } catch (error) {
       console.error('Error in email signup:', error);
