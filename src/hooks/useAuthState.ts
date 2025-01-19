@@ -27,12 +27,15 @@ export const useAuthState = () => {
           console.log("Profile state:", profile);
 
           // Determine the current step based on profile data
-          if (!profile?.phone_number) {
+          if (profile.onboarding_completed) {
+            setCurrentStep("complete");
+          } else if (!profile.phone_number) {
             setCurrentStep("phone");
-          } else if (!profile?.onboarding_completed) {
+          } else if (profile.onboarding_step === 2) {
             setCurrentStep("personality");
           } else {
-            setCurrentStep("complete");
+            // Default to email step if something's wrong
+            setCurrentStep("email");
           }
         } else {
           // No session means we start with email
@@ -52,7 +55,6 @@ export const useAuthState = () => {
       console.log("Auth state change:", event);
       
       if (event === 'SIGNED_IN' && session) {
-        // Always check profile state on sign in
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('phone_number, onboarding_completed, onboarding_step')
@@ -66,13 +68,12 @@ export const useAuthState = () => {
 
         console.log("Profile after sign in:", profile);
 
-        // Set the appropriate step based on profile completion
-        if (!profile?.phone_number) {
-          setCurrentStep("phone");
-        } else if (!profile?.onboarding_completed) {
-          setCurrentStep("personality");
-        } else {
+        if (profile.onboarding_completed) {
           setCurrentStep("complete");
+        } else if (!profile.phone_number) {
+          setCurrentStep("phone");
+        } else if (profile.onboarding_step === 2) {
+          setCurrentStep("personality");
         }
       } else if (event === 'SIGNED_OUT') {
         setCurrentStep("email");

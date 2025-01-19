@@ -91,7 +91,6 @@ const AuthContainer = () => {
 
                 if (updateError) throw updateError;
 
-                console.log("Moving to personality step after phone update");
                 setCurrentStep("personality");
                 
                 toast({
@@ -128,17 +127,28 @@ const AuthContainer = () => {
                   planning_style_notes: personalityData.planning_style_notes
                 };
 
-                const { error: updateError } = await supabase
+                // First save to personality_assessment table
+                const { error: assessmentError } = await supabase
+                  .from('personality_assessment')
+                  .insert([{
+                    user_id: session.user.id,
+                    ...personalityData
+                  }]);
+
+                if (assessmentError) throw assessmentError;
+
+                // Then update the profile
+                const { error: profileError } = await supabase
                   .from('profiles')
                   .update({ 
                     personality_traits: personalityJson,
-                    onboarding_step: 3
+                    onboarding_step: 3,
+                    onboarding_completed: true
                   })
                   .eq('id', session.user.id);
 
-                if (updateError) throw updateError;
+                if (profileError) throw profileError;
 
-                console.log("Completing onboarding");
                 setCurrentStep("complete");
                 navigate("/", { replace: true });
               } catch (error) {
