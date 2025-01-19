@@ -2,12 +2,12 @@ import { useNavigate } from "react-router-dom";
 import { AuthApiError } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import OnboardingSplash from "@/components/onboarding/OnboardingSplash";
 import AuthUI from "@/components/auth/AuthUI";
 import EmailSignupStep from "@/components/auth/EmailSignupStep";
 import PhoneSignupStep from "@/components/auth/PhoneSignupStep";
 import PersonalityAssessment from "@/components/onboarding/PersonalityAssessment";
 import { useAuthState } from "@/hooks/useAuthState";
+import { getAuthErrorMessage } from "@/utils/authErrors";
 import * as z from "zod";
 
 const emailSchema = z.object({
@@ -24,7 +24,7 @@ type PhoneFormValues = z.infer<typeof phoneSchema>;
 const Auth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { currentStep, setCurrentStep, isLoading, error } = useAuthState();
+  const { currentStep, setCurrentStep, isLoading, error, setError } = useAuthState();
 
   const handleEmailSubmit = async (values: EmailFormValues) => {
     try {
@@ -41,17 +41,11 @@ const Auth = () => {
       });
 
       if (signUpError) {
-        if (signUpError instanceof AuthApiError) {
-          if (signUpError.status === 422) {
-            // User already exists, show sign in suggestion
-            toast({
-              title: "Account exists",
-              description: "This email is already registered. Please sign in instead.",
-              variant: "destructive",
-            });
-            setCurrentStep("login");
-            return;
-          }
+        if (signUpError instanceof AuthApiError && signUpError.status === 422) {
+          const errorMessage = getAuthErrorMessage(signUpError);
+          setError(errorMessage);
+          setCurrentStep("login");
+          return;
         }
         throw signUpError;
       }
@@ -62,9 +56,11 @@ const Auth = () => {
       });
     } catch (error) {
       console.error('Error in email signup:', error);
+      const errorMessage = error instanceof Error ? getAuthErrorMessage(error) : "An unexpected error occurred";
+      setError(errorMessage);
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "An error occurred",
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -96,9 +92,11 @@ const Auth = () => {
       });
     } catch (error) {
       console.error('Error in phone signup:', error);
+      const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
+      setError(errorMessage);
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "An error occurred",
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -121,9 +119,11 @@ const Auth = () => {
       navigate("/", { replace: true });
     } catch (error) {
       console.error('Error completing personality assessment:', error);
+      const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
+      setError(errorMessage);
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "An error occurred",
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -149,7 +149,11 @@ const Auth = () => {
           <AuthUI error={error} onNewUser={() => setCurrentStep("email")} />
         )}
         {currentStep === "email" && (
-          <EmailSignupStep onSubmit={handleEmailSubmit} />
+          <EmailSignupStep 
+            onSubmit={handleEmailSubmit}
+            isSubmitting={isLoading}
+            error={error}
+          />
         )}
         {currentStep === "phone" && (
           <PhoneSignupStep onSubmit={handlePhoneSubmit} />
