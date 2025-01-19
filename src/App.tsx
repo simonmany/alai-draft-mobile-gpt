@@ -17,17 +17,14 @@ function App() {
 
   useEffect(() => {
     // Check initial auth state
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
-      if (error) {
-        console.error("Session error:", error);
-        setIsAuthenticated(false);
-        return;
-      }
-      
+    supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) {
         setIsAuthenticated(false);
         return;
       }
+
+      // Set initial auth state based on session existence
+      setIsAuthenticated(true);
 
       // Verify the session is valid by making a test query
       supabase
@@ -39,9 +36,11 @@ function App() {
           if (profileError) {
             console.error("Profile verification failed:", profileError);
             handleInvalidSession();
-            return;
           }
-          setIsAuthenticated(true);
+        })
+        .catch((error) => {
+          console.error("Error verifying profile:", error);
+          handleInvalidSession();
         });
     });
 
@@ -70,6 +69,8 @@ function App() {
       }
 
       if (event === 'SIGNED_IN' && session) {
+        setIsAuthenticated(true);
+        
         // Verify the session is valid
         const { error: profileError } = await supabase
           .from('profiles')
@@ -80,10 +81,7 @@ function App() {
         if (profileError) {
           console.error("Profile verification failed:", profileError);
           handleInvalidSession();
-          return;
         }
-
-        setIsAuthenticated(true);
         return;
       }
 
