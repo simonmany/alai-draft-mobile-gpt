@@ -58,21 +58,20 @@ const Auth = () => {
 
           if (profileError) throw profileError;
 
-          console.log("Profile data in checkUser:", profile);
-          console.log("Current states - showNewUserFlow:", showNewUserFlow, "showOnboarding:", showOnboarding);
-
           if (!profile?.onboarding_completed) {
             console.log("Onboarding not completed, checking phone number...");
             if (!profile?.phone_number) {
               console.log("No phone number, showing new user flow...");
               setShowNewUserFlow(true);
               setSignupStep('phone');
+              setIsLoading(false);
+              return;
             } else {
               console.log("Phone number exists, showing onboarding...");
               setShowOnboarding(true);
+              setIsLoading(false);
+              return;
             }
-            setIsLoading(false);
-            return;
           }
           
           console.log("Profile complete, navigating to home...");
@@ -95,7 +94,6 @@ const Auth = () => {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log("Auth state change event:", event);
-      console.log("Session in auth change:", session);
       
       if (event === 'TOKEN_REFRESHED') {
         return;
@@ -112,11 +110,7 @@ const Auth = () => {
 
           if (profileError) throw profileError;
 
-          console.log("Profile data in auth change:", profile);
-          console.log("States in auth change - showNewUserFlow:", showNewUserFlow, "showOnboarding:", showOnboarding);
-
           if (!profile?.onboarding_completed) {
-            console.log("Onboarding not completed in auth change...");
             if (!profile?.phone_number) {
               console.log("No phone number in auth change, showing new user flow...");
               setShowNewUserFlow(true);
@@ -128,8 +122,12 @@ const Auth = () => {
               return;
             }
           }
-          console.log("Profile complete in auth change, navigating to home...");
-          navigate("/", { replace: true });
+          
+          // Only navigate to home if onboarding is completed
+          if (profile.onboarding_completed) {
+            console.log("Profile complete in auth change, navigating to home...");
+            navigate("/", { replace: true });
+          }
         } catch (error) {
           console.error('Error fetching profile:', error);
           toast({
@@ -292,39 +290,12 @@ const Auth = () => {
     }
   };
 
-  const handleOnboardingComplete = async () => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user) throw new Error("No user found");
-
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ onboarding_completed: true })
-        .eq('id', session.user.id);
-
-      if (updateError) throw updateError;
-
-      navigate("/", { replace: true });
-      toast({
-        title: "Welcome!",
-        description: "Your profile has been set up successfully.",
-      });
-    } catch (error) {
-      console.error('Error completing onboarding:', error);
-      toast({
-        title: "Error",
-        description: "Failed to complete onboarding. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
   if (isLoading) {
     return null;
   }
 
   if (showOnboarding) {
-    return <OnboardingSplash onComplete={handleOnboardingComplete} />;
+    return <OnboardingSplash onComplete={() => navigate("/", { replace: true })} />;
   }
 
   if (showNewUserFlow) {
