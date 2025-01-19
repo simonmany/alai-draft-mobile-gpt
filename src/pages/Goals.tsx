@@ -30,18 +30,26 @@ const Goals = () => {
   const handleSignOut = async () => {
     try {
       setIsSigningOut(true);
+      
+      // First clear any existing session data
+      await supabase.auth.clearSession();
+      
+      // Then attempt to sign out
       const { error } = await supabase.auth.signOut();
       
       if (error) {
-        throw error;
+        console.error('Sign out error:', error);
+        // Even if there's an error, we'll redirect to auth page
+        // since the session is already cleared
       }
+
+      // Always navigate to auth page after clearing session
+      navigate("/auth");
+      
     } catch (error) {
       console.error('Sign out error:', error);
-      toast({
-        variant: "destructive",
-        title: "Error signing out",
-        description: "Please try again.",
-      });
+      // Even if there's an error, navigate to auth page
+      navigate("/auth");
     } finally {
       setIsSigningOut(false);
     }
