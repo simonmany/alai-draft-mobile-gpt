@@ -88,6 +88,10 @@ const Auth = () => {
           } else {
             navigate("/");
           }
+        } else {
+          // If no profile exists, start with phone number collection
+          setShowNewUserFlow(true);
+          setSignupStep('phone');
         }
       } else if (event === 'SIGNED_OUT') {
         setError(null);
@@ -161,11 +165,7 @@ const Auth = () => {
         throw signUpError;
       }
 
-      // If signup is successful and user is confirmed
-      if (data.user?.confirmed_at) {
-        setShowNewUserFlow(true);
-        setSignupStep('phone');
-      } else {
+      if (data.user?.confirmed_at || data.user?.confirmation_sent_at) {
         toast({
           title: "Success",
           description: "Please check your email to verify your account",
