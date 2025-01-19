@@ -36,7 +36,6 @@ const Auth = () => {
   useEffect(() => {
     const checkUser = async () => {
       try {
-        console.log("Checking user session...");
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
@@ -49,7 +48,6 @@ const Auth = () => {
         }
 
         if (session?.user) {
-          console.log("User session found, checking profile...");
           const { data: profile, error: profileError } = await supabase
             .from('profiles')
             .select('onboarding_completed, onboarding_step, phone_number')
@@ -58,23 +56,22 @@ const Auth = () => {
 
           if (profileError) throw profileError;
 
-          if (!profile?.onboarding_completed) {
-            console.log("Onboarding not completed, checking phone number...");
-            if (!profile?.phone_number) {
-              console.log("No phone number, showing new user flow...");
-              setShowNewUserFlow(true);
-              setSignupStep('phone');
-              setIsLoading(false);
-              return;
-            } else {
-              console.log("Phone number exists, showing onboarding...");
-              setShowOnboarding(true);
-              setIsLoading(false);
-              return;
-            }
+          // If profile exists but no phone number, show phone step
+          if (!profile?.phone_number) {
+            setShowNewUserFlow(true);
+            setSignupStep('phone');
+            setIsLoading(false);
+            return;
           }
           
-          console.log("Profile complete, navigating to home...");
+          // If has phone but onboarding not complete, show onboarding
+          if (!profile?.onboarding_completed) {
+            setShowOnboarding(true);
+            setIsLoading(false);
+            return;
+          }
+
+          // Only navigate home if everything is complete
           navigate("/", { replace: true });
         }
       } catch (error) {
@@ -95,13 +92,10 @@ const Auth = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log("Auth state change event:", event);
       
-      if (event === 'TOKEN_REFRESHED') {
-        return;
-      }
+      if (event === 'TOKEN_REFRESHED') return;
       
       if (event === 'SIGNED_IN' && session) {
         try {
-          console.log("Signed in, checking profile in auth change...");
           const { data: profile, error: profileError } = await supabase
             .from('profiles')
             .select('onboarding_completed, phone_number')
@@ -110,22 +104,21 @@ const Auth = () => {
 
           if (profileError) throw profileError;
 
-          if (!profile?.onboarding_completed) {
-            if (!profile?.phone_number) {
-              console.log("No phone number in auth change, showing new user flow...");
-              setShowNewUserFlow(true);
-              setSignupStep('phone');
-              return;
-            } else {
-              console.log("Phone number exists in auth change, showing onboarding...");
-              setShowOnboarding(true);
-              return;
-            }
+          // New user flow - need phone number
+          if (!profile?.phone_number) {
+            setShowNewUserFlow(true);
+            setSignupStep('phone');
+            return;
           }
           
-          // Only navigate to home if onboarding is completed
+          // Has phone but needs onboarding
+          if (!profile?.onboarding_completed) {
+            setShowOnboarding(true);
+            return;
+          }
+
+          // Everything complete - go home
           if (profile.onboarding_completed) {
-            console.log("Profile complete in auth change, navigating to home...");
             navigate("/", { replace: true });
           }
         } catch (error) {
@@ -137,7 +130,6 @@ const Auth = () => {
           });
         }
       } else if (event === 'SIGNED_OUT') {
-        console.log("Signed out, resetting states...");
         setError(null);
         setShowOnboarding(false);
         setShowNewUserFlow(false);
