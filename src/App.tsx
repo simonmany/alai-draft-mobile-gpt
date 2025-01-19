@@ -23,8 +23,42 @@ function App() {
         setIsAuthenticated(false);
         return;
       }
-      setIsAuthenticated(!!session);
+      
+      if (!session) {
+        setIsAuthenticated(false);
+        return;
+      }
+
+      // Verify the session is valid by making a test query
+      supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', session.user.id)
+        .single()
+        .then(({ error: profileError }) => {
+          if (profileError) {
+            console.error("Profile verification failed:", profileError);
+            handleInvalidSession();
+            return;
+          }
+          setIsAuthenticated(true);
+        });
     });
+
+    const handleInvalidSession = async () => {
+      try {
+        await supabase.auth.signOut();
+      } catch (error) {
+        console.error("Error during sign out:", error);
+      } finally {
+        setIsAuthenticated(false);
+        toast({
+          title: "Session Expired",
+          description: "Please sign in again.",
+          variant: "destructive",
+        });
+      }
+    };
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
@@ -35,21 +69,28 @@ function App() {
         return;
       }
 
+      if (event === 'SIGNED_IN' && session) {
+        // Verify the session is valid
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', session.user.id)
+          .single();
+
+        if (profileError) {
+          console.error("Profile verification failed:", profileError);
+          handleInvalidSession();
+          return;
+        }
+
+        setIsAuthenticated(true);
+        return;
+      }
+
       // For token/session related errors, sign out the user
       if (event === 'TOKEN_REFRESHED' && !session) {
         console.log('Token refresh failed, signing out');
-        try {
-          await supabase.auth.signOut();
-          setIsAuthenticated(false);
-          toast({
-            title: "Session Expired",
-            description: "Please sign in again.",
-            variant: "destructive",
-          });
-        } catch (error) {
-          console.error("Error during sign out:", error);
-          setIsAuthenticated(false);
-        }
+        handleInvalidSession();
         return;
       }
 
