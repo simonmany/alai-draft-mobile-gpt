@@ -45,18 +45,24 @@ const Goals = () => {
       
       if (error) {
         console.error('Sign out error:', error);
-        // Even if there's an error signing out, we'll force clear the session
-        await supabase.auth.clearSession();
+        toast({
+          variant: "destructive",
+          title: "Error signing out",
+          description: "Please try again.",
+        });
+        return;
       }
 
-      // Always navigate to auth page after attempting sign out
+      // Navigate to auth page after successful sign out
       navigate("/auth", { replace: true });
       
     } catch (error) {
       console.error('Sign out error:', error);
-      // Force clear session and redirect on error
-      await supabase.auth.clearSession();
-      navigate("/auth", { replace: true });
+      toast({
+        variant: "destructive",
+        title: "Error signing out",
+        description: "Please try again.",
+      });
     } finally {
       setIsSigningOut(false);
     }
