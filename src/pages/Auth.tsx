@@ -9,33 +9,44 @@ const Auth = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    const checkAuthAndProfile = async () => {
+    const checkProfile = async () => {
       try {
-        console.log("Auth page: Checking profile...");
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
-        if (!session) {
-          console.log("No session found in Auth page");
+        if (sessionError) {
+          console.error("Session error in Auth:", sessionError);
+          await supabase.auth.signOut();
           return;
         }
 
-        console.log("Session found, fetching profile...");
+        if (!session) return;
+
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .select('onboarding_completed')
+          .select('onboarding_completed, phone_number, onboarding_step')
           .eq('id', session.user.id)
           .single();
 
-        if (profileError) throw profileError;
+        if (profileError) {
+          console.error("Profile fetch error:", profileError);
+          await supabase.auth.signOut();
+          toast({
+            title: "Error",
+            description: "Failed to fetch user profile. Please try again.",
+            variant: "destructive",
+          });
+          return;
+        }
 
         console.log("Profile check in Auth:", profile);
         
-        if (profile?.onboarding_completed) {
-          console.log("Onboarding completed, navigating to home");
+        // Only redirect to home if onboarding is completed
+        if (profile.onboarding_completed) {
           navigate('/', { replace: true });
         }
       } catch (error) {
         console.error("Error checking profile:", error);
+        await supabase.auth.signOut();
         toast({
           title: "Error",
           description: "An unexpected error occurred. Please try again.",
@@ -44,7 +55,40 @@ const Auth = () => {
       }
     };
 
-    checkAuthAndProfile();
+    checkProfile();
+
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("Auth state change:", event);
+      
+      if (event === 'SIGNED_IN' && session) {
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('onboarding_completed, phone_number, onboarding_step')
+          .eq('id', session.user.id)
+          .single();
+
+        if (profileError) {
+          console.error("Profile fetch error on auth change:", profileError);
+          await supabase.auth.signOut();
+          toast({
+            title: "Error",
+            description: "Failed to fetch user profile. Please try again.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        // Only redirect to home if onboarding is completed
+        if (profile.onboarding_completed) {
+          navigate('/', { replace: true });
+        }
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [navigate, toast]);
 
   return <AuthContainer />;

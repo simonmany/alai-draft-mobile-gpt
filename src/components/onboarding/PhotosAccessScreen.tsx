@@ -2,9 +2,6 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Image } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
 import AlCharacter from "./AlCharacter";
 
 interface PhotosAccessScreenProps {
@@ -12,48 +9,8 @@ interface PhotosAccessScreenProps {
 }
 
 const PhotosAccessScreen = ({ onComplete }: PhotosAccessScreenProps) => {
-  const { toast } = useToast();
-  const navigate = useNavigate();
-
-  const handleComplete = async () => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user) {
-        throw new Error("No user found");
-      }
-
-      // Update the profile to mark onboarding as completed
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ 
-          onboarding_completed: true,
-          onboarding_step: 4
-        })
-        .eq('id', session.user.id);
-
-      if (updateError) {
-        throw updateError;
-      }
-
-      // Call the onComplete callback
-      onComplete();
-
-      // Show success toast
-      toast({
-        title: "Welcome!",
-        description: "Your profile is all set up.",
-      });
-
-      // Navigate to home
-      navigate('/', { replace: true });
-    } catch (error) {
-      console.error('Error completing onboarding:', error);
-      toast({
-        title: "Error",
-        description: "There was a problem completing your profile setup. Please try again.",
-        variant: "destructive",
-      });
-    }
+  const handleComplete = () => {
+    onComplete();
   };
 
   return (
