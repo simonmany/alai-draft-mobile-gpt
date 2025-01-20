@@ -14,17 +14,19 @@ const AuthContainer = () => {
   const { toast } = useToast();
   const { currentStep, setCurrentStep, isLoading, error, setError } = useAuthState();
 
-  console.log("AuthContainer - Current Step:", currentStep, "Loading:", isLoading);
+  console.log("AuthContainer rendering - Current Step:", currentStep, "Loading:", isLoading);
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-assistant-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-assistant-primary" />
+      <div className="min-h-screen bg-assistant-background flex flex-col items-center justify-center p-4">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-assistant-primary mb-4" />
+        <p className="text-sm text-gray-500">Loading...</p>
       </div>
     );
   }
 
   if (currentStep === "complete") {
+    console.log("Onboarding complete, navigating to home");
     navigate("/", { replace: true });
     return null;
   }
