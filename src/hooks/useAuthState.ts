@@ -33,6 +33,8 @@ export const useAuthState = () => {
             default:
               setCurrentStep("phone");
           }
+        } else {
+          setCurrentStep("phone");
         }
       }
     };
@@ -65,6 +67,8 @@ export const useAuthState = () => {
             default:
               setCurrentStep("phone");
           }
+        } else {
+          setCurrentStep("phone");
         }
       } else if (event === 'SIGNED_OUT') {
         setCurrentStep("email");
