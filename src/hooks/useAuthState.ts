@@ -6,7 +6,7 @@ export type AuthStep = "email" | "phone" | "personality" | "interests" | "photos
 
 export const useAuthState = () => {
   const [currentStep, setCurrentStep] = useState<AuthStep>("email");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // Start with loading true
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
@@ -49,7 +49,7 @@ export const useAuthState = () => {
           console.log("No session found, setting email step");
           if (mounted) {
             setCurrentStep("email");
-            setIsLoading(false);
+            setIsLoading(false); // Make sure to set loading to false here
           }
           return;
         }
@@ -67,21 +67,19 @@ export const useAuthState = () => {
           const nextStep = determineStep(profile);
           console.log("Setting next step to:", nextStep);
           setCurrentStep(nextStep);
-          setIsLoading(false);
+          setIsLoading(false); // Make sure to set loading to false after setting the step
         }
       } catch (error) {
         console.error("Error in checkSession:", error);
         if (mounted) {
           setError(error instanceof Error ? error.message : "An error occurred");
           setCurrentStep("email");
-          setIsLoading(false);
+          setIsLoading(false); // Make sure to set loading to false in case of error
         }
       }
     };
 
-    // Only set loading to true for the initial check
-    setIsLoading(true);
-    checkSession();
+    checkSession(); // Run the initial check
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log("Auth state change:", event, session ? "with session" : "no session");
@@ -96,6 +94,7 @@ export const useAuthState = () => {
       }
       
       if (event === 'SIGNED_IN' && session) {
+        setIsLoading(true); // Set loading true when signed in
         try {
           const { data: profile, error: profileError } = await supabase
             .from('profiles')
@@ -109,12 +108,14 @@ export const useAuthState = () => {
           console.log("Auth change: setting next step to:", nextStep);
           if (mounted) {
             setCurrentStep(nextStep);
+            setIsLoading(false); // Set loading false after updating step
           }
         } catch (error) {
           console.error("Error in auth state change:", error);
           if (mounted) {
             setCurrentStep("email");
             setError(error instanceof Error ? error.message : "An error occurred");
+            setIsLoading(false); // Set loading false in case of error
           }
         }
       }
