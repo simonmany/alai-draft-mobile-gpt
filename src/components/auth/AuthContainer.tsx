@@ -24,11 +24,7 @@ const AuthContainer = () => {
         
         if (sessionError) {
           console.error("Session error:", sessionError);
-          toast({
-            title: "Authentication Error",
-            description: "There was an error checking your session. Please try again.",
-            variant: "destructive",
-          });
+          setError(sessionError.message);
           return;
         }
 
@@ -44,41 +40,33 @@ const AuthContainer = () => {
 
           if (profileError) {
             console.error("Profile fetch error:", profileError);
-            console.error("Full profile error details:", profileError);
-            toast({
-              title: "Profile Error",
-              description: "There was an error fetching your profile. Please try again.",
-              variant: "destructive",
-            });
+            setError(profileError.message);
             return;
           }
 
           console.log("Profile data:", profile);
-          console.log("Current onboarding step:", profile?.onboarding_step);
-          console.log("Onboarding completed:", profile?.onboarding_completed);
 
           if (profile?.onboarding_completed) {
             console.log("Onboarding completed, navigating to home");
             navigate("/", { replace: true });
-          } else {
-            console.log("Setting current step based on onboarding_step:", profile?.onboarding_step);
-            switch (profile?.onboarding_step) {
+          } else if (profile?.onboarding_step) {
+            console.log("Setting step based on onboarding_step:", profile.onboarding_step);
+            switch (profile.onboarding_step) {
               case 1:
-                console.log("Setting step to phone");
                 setCurrentStep("phone");
                 break;
               case 2:
-                console.log("Setting step to personality");
                 setCurrentStep("personality");
                 break;
               case 3:
-                console.log("Setting step to interests");
                 setCurrentStep("interests");
                 break;
               default:
-                console.log("Setting default step to phone");
                 setCurrentStep("phone");
             }
+          } else {
+            console.log("No onboarding step found, setting to phone");
+            setCurrentStep("phone");
           }
         } else {
           console.log("No session found, staying on auth page");
@@ -86,11 +74,7 @@ const AuthContainer = () => {
         }
       } catch (error) {
         console.error("Unexpected error in checkSession:", error);
-        toast({
-          title: "Error",
-          description: "An unexpected error occurred. Please try again.",
-          variant: "destructive",
-        });
+        setError(error instanceof Error ? error.message : "An unexpected error occurred");
       }
     };
 
@@ -98,19 +82,23 @@ const AuthContainer = () => {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log("Auth state change event:", event);
-      console.log("Session in auth change:", session);
-
+      
       if (event === 'SIGNED_IN' && session) {
         console.log("Signed in, checking session...");
         await checkSession();
+      } else if (event === 'SIGNED_OUT') {
+        console.log("Signed out, resetting to email step");
+        setCurrentStep("email");
+        setError(null);
       }
     });
 
     return () => {
       subscription.unsubscribe();
     };
-  }, [navigate, setCurrentStep, toast]);
+  }, [navigate, setCurrentStep, setError, toast]);
 
+  // Handle completion
   useEffect(() => {
     if (currentStep === "complete") {
       console.log("Onboarding complete, navigating to home");
