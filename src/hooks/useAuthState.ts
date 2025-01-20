@@ -23,11 +23,6 @@ export const useAuthState = () => {
       return "complete";
     }
 
-    if (!profile.phone_number) {
-      console.log("No phone number, returning to phone step");
-      return "phone";
-    }
-
     switch (profile.onboarding_step) {
       case 1:
         return "phone";
@@ -38,7 +33,7 @@ export const useAuthState = () => {
       case 4:
         return "photos";
       default:
-        return "phone";
+        return "email";
     }
   };
 
@@ -50,10 +45,7 @@ export const useAuthState = () => {
         console.log("Checking session...");
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
-        if (sessionError) {
-          console.error("Session error:", sessionError);
-          throw sessionError;
-        }
+        if (sessionError) throw sessionError;
 
         if (!session?.user) {
           console.log("No session found, setting email step");
@@ -71,24 +63,19 @@ export const useAuthState = () => {
           .eq('id', session.user.id)
           .single();
 
-        if (profileError) {
-          console.error("Profile fetch error:", profileError);
-          throw profileError;
-        }
+        if (profileError) throw profileError;
 
         if (mounted) {
           const nextStep = determineStep(profile);
           console.log("Setting next step to:", nextStep);
           setCurrentStep(nextStep);
+          setIsLoading(false);
         }
       } catch (error) {
         console.error("Error in checkSession:", error);
         if (mounted) {
           setError(error instanceof Error ? error.message : "An error occurred");
           setCurrentStep("email");
-        }
-      } finally {
-        if (mounted) {
           setIsLoading(false);
         }
       }
@@ -100,8 +87,6 @@ export const useAuthState = () => {
       console.log("Auth state change:", event, session ? "with session" : "no session");
       
       if (!mounted) return;
-      
-      setIsLoading(true);
 
       if (event === 'SIGNED_OUT') {
         setCurrentStep("email");
@@ -123,14 +108,14 @@ export const useAuthState = () => {
           const nextStep = determineStep(profile);
           console.log("Auth change: setting next step to:", nextStep);
           setCurrentStep(nextStep);
+          setIsLoading(false);
         } catch (error) {
           console.error("Error in auth state change:", error);
           setCurrentStep("email");
           setError(error instanceof Error ? error.message : "An error occurred");
+          setIsLoading(false);
         }
       }
-      
-      setIsLoading(false);
     });
 
     return () => {

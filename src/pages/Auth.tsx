@@ -27,7 +27,7 @@ const Auth = () => {
         console.log("Session found, fetching profile...");
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .select('onboarding_completed, phone_number, onboarding_step')
+          .select('onboarding_completed')
           .eq('id', session.user.id)
           .single();
 
@@ -44,7 +44,6 @@ const Auth = () => {
         }
       } catch (error) {
         console.error("Error checking profile:", error);
-        await supabase.auth.signOut();
         toast({
           title: "Error",
           description: "An unexpected error occurred. Please try again.",
@@ -54,38 +53,6 @@ const Auth = () => {
     };
 
     checkSession();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("Auth state change in Auth page:", event);
-      
-      if (event === 'SIGNED_IN' && session) {
-        try {
-          const { data: profile, error: profileError } = await supabase
-            .from('profiles')
-            .select('onboarding_completed, phone_number, onboarding_step')
-            .eq('id', session.user.id)
-            .single();
-
-          if (profileError) throw profileError;
-
-          if (profile.onboarding_completed) {
-            navigate('/', { replace: true });
-          }
-        } catch (error) {
-          console.error("Error in auth state change:", error);
-          await supabase.auth.signOut();
-          toast({
-            title: "Error",
-            description: "An unexpected error occurred. Please try again.",
-            variant: "destructive",
-          });
-        }
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
   }, [navigate, toast]);
 
   return <AuthContainer />;
