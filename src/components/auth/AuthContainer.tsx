@@ -17,8 +17,28 @@ const AuthContainer = () => {
   console.log("AuthContainer rendering - Current Step:", currentStep);
 
   useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('onboarding_completed')
+          .eq('id', session.user.id)
+          .single();
+
+        if (profile?.onboarding_completed) {
+          console.log("User has completed onboarding, navigating to home");
+          navigate("/", { replace: true });
+        }
+      }
+    };
+
+    checkSession();
+  }, [navigate]);
+
+  useEffect(() => {
     if (currentStep === "complete") {
-      console.log("Onboarding complete or existing user, navigating to home");
+      console.log("Onboarding complete, navigating to home");
       navigate("/", { replace: true });
     }
   }, [currentStep, navigate]);

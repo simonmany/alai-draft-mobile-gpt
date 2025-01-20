@@ -39,7 +39,7 @@ const AuthUI = ({ error }: AuthUIProps) => {
             },
           }}
           providers={[]}
-          redirectTo={`${window.location.origin}/auth`}
+          redirectTo={`${window.location.origin}/auth/callback`}
         />
       </div>
     </div>

@@ -10,12 +10,16 @@ export const useAuthState = () => {
   useEffect(() => {
     const checkInitialSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
+      console.log("Initial session check:", session);
+      
       if (session?.user) {
         const { data: profile } = await supabase
           .from('profiles')
           .select('onboarding_completed, onboarding_step')
           .eq('id', session.user.id)
           .single();
+
+        console.log("Profile data:", profile);
 
         if (profile?.onboarding_completed) {
           setCurrentStep("complete");
@@ -43,6 +47,7 @@ export const useAuthState = () => {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log("Auth state change event:", event);
+      console.log("Session:", session);
       
       if (event === 'SIGNED_IN' && session) {
         const { data: profile } = await supabase
@@ -50,6 +55,8 @@ export const useAuthState = () => {
           .select('onboarding_completed, onboarding_step')
           .eq('id', session.user.id)
           .single();
+
+        console.log("Profile data after sign in:", profile);
 
         if (profile?.onboarding_completed) {
           setCurrentStep("complete");
