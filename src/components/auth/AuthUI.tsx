@@ -3,10 +3,25 @@ import { Auth as SupabaseAuth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AuthError } from "@supabase/supabase-js";
 
 interface AuthUIProps {
   error: string | null;
 }
+
+const getAuthErrorMessage = (error: AuthError | null): string => {
+  if (!error) return "";
+  
+  if (error.message.includes("Invalid login credentials")) {
+    return "Invalid email or password. Please check your credentials and try again.";
+  }
+  
+  if (error.message.includes("Email not confirmed")) {
+    return "Please verify your email address before signing in.";
+  }
+  
+  return error.message;
+};
 
 const AuthUI = ({ error }: AuthUIProps) => {
   return (
@@ -21,7 +36,7 @@ const AuthUI = ({ error }: AuthUIProps) => {
       <div className="bg-white p-8 rounded-lg shadow-md">
         {error && (
           <Alert variant="destructive" className="mb-4">
-            <AlertDescription>{error}</AlertDescription>
+            <AlertDescription>{getAuthErrorMessage({ message: error } as AuthError)}</AlertDescription>
           </Alert>
         )}
         
@@ -40,6 +55,7 @@ const AuthUI = ({ error }: AuthUIProps) => {
           }}
           providers={[]}
           redirectTo={window.location.origin}
+          showLinks={false}
         />
       </div>
     </div>
