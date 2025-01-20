@@ -8,6 +8,37 @@ export const useAuthState = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    const checkInitialSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('onboarding_completed, onboarding_step')
+          .eq('id', session.user.id)
+          .single();
+
+        if (profile?.onboarding_completed) {
+          setCurrentStep("complete");
+        } else if (profile?.onboarding_step) {
+          switch (profile.onboarding_step) {
+            case 1:
+              setCurrentStep("phone");
+              break;
+            case 2:
+              setCurrentStep("personality");
+              break;
+            case 3:
+              setCurrentStep("interests");
+              break;
+            default:
+              setCurrentStep("phone");
+          }
+        }
+      }
+    };
+
+    checkInitialSession();
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log("Auth state change event:", event);
       

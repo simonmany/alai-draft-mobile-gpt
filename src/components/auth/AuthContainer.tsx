@@ -7,6 +7,7 @@ import InterestsSelection from "../onboarding/InterestsSelection";
 import { useAuthState } from "@/hooks/useAuthState";
 import AuthUI from "./AuthUI";
 import type { Json } from "@/integrations/supabase/types";
+import { useEffect } from "react";
 
 const AuthContainer = () => {
   const navigate = useNavigate();
@@ -15,11 +16,12 @@ const AuthContainer = () => {
 
   console.log("AuthContainer rendering - Current Step:", currentStep);
 
-  if (currentStep === "complete") {
-    console.log("Onboarding complete or existing user, navigating to home");
-    navigate("/", { replace: true });
-    return null;
-  }
+  useEffect(() => {
+    if (currentStep === "complete") {
+      console.log("Onboarding complete or existing user, navigating to home");
+      navigate("/", { replace: true });
+    }
+  }, [currentStep, navigate]);
 
   return (
     <div className="min-h-screen bg-assistant-background flex items-center justify-center p-4">

@@ -39,7 +39,7 @@ const AuthUI = ({ error }: AuthUIProps) => {
             },
           }}
           providers={[]}
-          view="sign_in"
+          redirectTo={window.location.origin}
         />
       </div>
     </div>
