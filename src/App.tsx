@@ -17,14 +17,20 @@ function App() {
 
   useEffect(() => {
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setIsAuthenticated(!!session);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        console.log("Initial session check:", session ? "Authenticated" : "Not authenticated");
+        setIsAuthenticated(!!session);
+      } catch (error) {
+        console.error("Session check error:", error);
+        setIsAuthenticated(false);
+      }
     };
 
     checkSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("Auth state change:", event);
+      console.log("Auth state change:", event, session ? "Authenticated" : "Not authenticated");
       setIsAuthenticated(!!session);
     });
 
