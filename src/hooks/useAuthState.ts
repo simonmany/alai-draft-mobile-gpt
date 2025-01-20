@@ -109,6 +109,7 @@ export const useAuthState = () => {
     currentStep,
     setCurrentStep,
     isLoading,
+    setIsLoading,  // Added this line to expose setIsLoading
     error,
     setError
   };
