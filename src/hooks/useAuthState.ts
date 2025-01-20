@@ -49,7 +49,7 @@ export const useAuthState = () => {
       console.log("Auth state change event:", event);
       console.log("Session:", session);
       
-      if (event === 'SIGNED_IN' && session) {
+      if (session?.user) {
         const { data: profile } = await supabase
           .from('profiles')
           .select('onboarding_completed, onboarding_step')
