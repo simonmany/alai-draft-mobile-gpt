@@ -11,20 +11,12 @@ import type { Json } from "@/integrations/supabase/types";
 const AuthContainer = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { currentStep, setCurrentStep, isLoading, setIsLoading, error, setError } = useAuthState();
+  const { currentStep, setCurrentStep, error, setError } = useAuthState();
 
-  console.log("AuthContainer rendering - Current Step:", currentStep, "Loading:", isLoading);
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-assistant-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-assistant-primary" />
-      </div>
-    );
-  }
+  console.log("AuthContainer rendering - Current Step:", currentStep);
 
   if (currentStep === "complete") {
-    console.log("Onboarding complete, navigating to home");
+    console.log("Onboarding complete or existing user, navigating to home");
     navigate("/", { replace: true });
     return null;
   }
@@ -40,7 +32,6 @@ const AuthContainer = () => {
           <PhoneSignupStep 
             onSubmit={async (values) => {
               try {
-                setIsLoading(true);
                 const { data: { session } } = await supabase.auth.getSession();
                 if (!session?.user) throw new Error("No user found");
 
@@ -69,8 +60,6 @@ const AuthContainer = () => {
                   description: errorMessage,
                   variant: "destructive",
                 });
-              } finally {
-                setIsLoading(false);
               }
             }}
           />
@@ -80,7 +69,6 @@ const AuthContainer = () => {
           <PersonalityAssessment 
             onComplete={async (personalityData) => {
               try {
-                setIsLoading(true);
                 const { data: { session } } = await supabase.auth.getSession();
                 if (!session?.user) throw new Error("No user found");
 
@@ -122,8 +110,6 @@ const AuthContainer = () => {
                   description: errorMessage,
                   variant: "destructive",
                 });
-              } finally {
-                setIsLoading(false);
               }
             }}
           />
@@ -133,7 +119,6 @@ const AuthContainer = () => {
           <InterestsSelection 
             onComplete={async () => {
               try {
-                setIsLoading(true);
                 const { data: { session } } = await supabase.auth.getSession();
                 if (!session?.user) throw new Error("No user found");
 
@@ -148,7 +133,6 @@ const AuthContainer = () => {
                 if (profileError) throw profileError;
 
                 setCurrentStep("complete");
-                navigate("/", { replace: true });
               } catch (error) {
                 console.error('Error completing interests:', error);
                 const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
@@ -158,8 +142,6 @@ const AuthContainer = () => {
                   description: errorMessage,
                   variant: "destructive",
                 });
-              } finally {
-                setIsLoading(false);
               }
             }}
           />
