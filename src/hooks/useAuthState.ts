@@ -42,12 +42,8 @@ export const useAuthState = () => {
 
     const checkSession = async () => {
       try {
-        if (!mounted) return;
-        setIsLoading(true);
-        console.log("Checking session...");
-        
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        if (sessionError) throw sessionError;
+        console.log("Initial session check...");
+        const { data: { session } } = await supabase.auth.getSession();
 
         if (!session?.user) {
           console.log("No session found, setting email step");
@@ -83,6 +79,8 @@ export const useAuthState = () => {
       }
     };
 
+    // Only set loading to true for the initial check
+    setIsLoading(true);
     checkSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
@@ -99,7 +97,6 @@ export const useAuthState = () => {
       
       if (event === 'SIGNED_IN' && session) {
         try {
-          setIsLoading(true);
           const { data: profile, error: profileError } = await supabase
             .from('profiles')
             .select('onboarding_completed, onboarding_step')
@@ -112,14 +109,12 @@ export const useAuthState = () => {
           console.log("Auth change: setting next step to:", nextStep);
           if (mounted) {
             setCurrentStep(nextStep);
-            setIsLoading(false);
           }
         } catch (error) {
           console.error("Error in auth state change:", error);
           if (mounted) {
             setCurrentStep("email");
             setError(error instanceof Error ? error.message : "An error occurred");
-            setIsLoading(false);
           }
         }
       }
