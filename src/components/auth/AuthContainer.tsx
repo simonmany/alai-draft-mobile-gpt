@@ -24,6 +24,11 @@ const AuthContainer = () => {
         
         if (sessionError) {
           console.error("Session error:", sessionError);
+          toast({
+            title: "Authentication Error",
+            description: "There was an error checking your session. Please try again.",
+            variant: "destructive",
+          });
           return;
         }
 
@@ -40,6 +45,11 @@ const AuthContainer = () => {
           if (profileError) {
             console.error("Profile fetch error:", profileError);
             console.error("Full profile error details:", profileError);
+            toast({
+              title: "Profile Error",
+              description: "There was an error fetching your profile. Please try again.",
+              variant: "destructive",
+            });
             return;
           }
 
@@ -72,9 +82,15 @@ const AuthContainer = () => {
           }
         } else {
           console.log("No session found, staying on auth page");
+          setCurrentStep("email");
         }
       } catch (error) {
         console.error("Unexpected error in checkSession:", error);
+        toast({
+          title: "Error",
+          description: "An unexpected error occurred. Please try again.",
+          variant: "destructive",
+        });
       }
     };
 
@@ -93,7 +109,7 @@ const AuthContainer = () => {
     return () => {
       subscription.unsubscribe();
     };
-  }, [navigate, setCurrentStep]);
+  }, [navigate, setCurrentStep, toast]);
 
   useEffect(() => {
     if (currentStep === "complete") {
