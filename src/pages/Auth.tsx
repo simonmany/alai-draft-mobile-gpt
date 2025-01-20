@@ -14,10 +14,7 @@ const Auth = () => {
         console.log("Auth page: Checking profile...");
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
-        if (sessionError) {
-          console.error("Session error in Auth:", sessionError);
-          throw sessionError;
-        }
+        if (sessionError) throw sessionError;
 
         if (!session) {
           console.log("No session found in Auth page");
@@ -31,10 +28,7 @@ const Auth = () => {
           .eq('id', session.user.id)
           .single();
 
-        if (profileError) {
-          console.error("Profile fetch error:", profileError);
-          throw profileError;
-        }
+        if (profileError) throw profileError;
 
         console.log("Profile check in Auth:", profile);
         

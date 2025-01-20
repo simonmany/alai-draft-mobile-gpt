@@ -59,7 +59,7 @@ export const useAuthState = () => {
         console.log("Session found, fetching profile...");
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .select('phone_number, onboarding_completed, onboarding_step')
+          .select('onboarding_completed, onboarding_step')
           .eq('id', session.user.id)
           .single();
 
@@ -99,7 +99,7 @@ export const useAuthState = () => {
         try {
           const { data: profile, error: profileError } = await supabase
             .from('profiles')
-            .select('phone_number, onboarding_completed, onboarding_step')
+            .select('onboarding_completed, onboarding_step')
             .eq('id', session.user.id)
             .single();
 
