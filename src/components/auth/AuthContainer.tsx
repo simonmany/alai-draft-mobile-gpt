@@ -3,11 +3,11 @@ import { useToast } from "@/hooks/use-toast";
 import { AuthError } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { getAuthErrorMessage } from "@/utils/authErrors";
-import EmailSignupStep from "./EmailSignupStep";
 import PhoneSignupStep from "./PhoneSignupStep";
 import PersonalityAssessment from "../onboarding/personality/PersonalityAssessment";
 import InterestsSelection from "../onboarding/InterestsSelection";
 import { useAuthState } from "@/hooks/useAuthState";
+import AuthUI from "./AuthUI";
 import type { Json } from "@/integrations/supabase/types";
 
 const AuthContainer = () => {
@@ -30,42 +30,7 @@ const AuthContainer = () => {
     <div className="min-h-screen bg-assistant-background flex items-center justify-center p-4">
       <div className="w-full max-w-md space-y-8">
         {currentStep === "email" && (
-          <EmailSignupStep 
-            onSubmit={async (values) => {
-              try {
-                const randomPassword = Math.random().toString(36).slice(-12) + 
-                                    Math.random().toString(36).toUpperCase().slice(-4) + 
-                                    "!2";
-
-                const { error: signUpError } = await supabase.auth.signUp({
-                  email: values.email,
-                  password: randomPassword,
-                  options: {
-                    emailRedirectTo: `${window.location.origin}/auth`,
-                  },
-                });
-
-                if (signUpError) throw signUpError;
-
-                toast({
-                  title: "Success",
-                  description: "Please check your email to verify your account",
-                });
-              } catch (error) {
-                console.error("Error in email signup:", error);
-                const errorMessage = error instanceof AuthError
-                  ? getAuthErrorMessage(error)
-                  : "An unexpected error occurred";
-                setError(errorMessage);
-                toast({
-                  title: "Error",
-                  description: errorMessage,
-                  variant: "destructive",
-                });
-              }
-            }}
-            error={error}
-          />
+          <AuthUI error={error} />
         )}
 
         {currentStep === "phone" && (
@@ -112,7 +77,6 @@ const AuthContainer = () => {
                 const { data: { session } } = await supabase.auth.getSession();
                 if (!session?.user) throw new Error("No user found");
 
-                // Convert personalityData to a format that matches the Json type
                 const personalityJson: { [key: string]: Json } = {
                   social_energy: personalityData.social_energy,
                   social_energy_notes: personalityData.social_energy_notes,

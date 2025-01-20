@@ -2,21 +2,19 @@ import React from "react";
 import { Auth as SupabaseAuth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface AuthUIProps {
   error: string | null;
-  onNewUser: () => void;
 }
 
-const AuthUI = ({ error, onNewUser }: AuthUIProps) => {
+const AuthUI = ({ error }: AuthUIProps) => {
   return (
     <div className="w-full max-w-md space-y-8">
       <div className="text-center">
         <h2 className="text-3xl font-bold text-gray-900">Welcome</h2>
         <p className="mt-2 text-sm text-gray-600">
-          Sign in to your account
+          Sign in to your account or create a new one
         </p>
       </div>
       
@@ -39,22 +37,10 @@ const AuthUI = ({ error, onNewUser }: AuthUIProps) => {
                 },
               },
             },
-            className: {
-              anchor: 'hidden',
-            },
           }}
           providers={[]}
+          view="sign_in"
         />
-
-        <div className="mt-6 text-center">
-          <Button
-            variant="link"
-            onClick={onNewUser}
-            className="text-sm text-gray-600 hover:text-gray-900"
-          >
-            Don't have an account? Sign up
-          </Button>
-        </div>
       </div>
     </div>
   );
