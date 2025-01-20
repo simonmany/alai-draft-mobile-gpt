@@ -43,7 +43,7 @@ const Auth = () => {
       }
     };
 
-    checkSession();
+    checkProfile(); // Fixed: Changed checkSession() to checkProfile()
   }, [navigate]);
 
   return <AuthContainer />;
