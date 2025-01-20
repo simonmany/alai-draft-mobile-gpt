@@ -1,7 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { getAuthErrorMessage } from "@/utils/authErrors";
 import PhoneSignupStep from "./PhoneSignupStep";
 import PersonalityAssessment from "../onboarding/personality/PersonalityAssessment";
 import InterestsSelection from "../onboarding/InterestsSelection";
@@ -15,10 +14,14 @@ const AuthContainer = () => {
   const { toast } = useToast();
   const { currentStep, setCurrentStep, isLoading, error, setError } = useAuthState();
 
+  console.log("AuthContainer - Current Step:", currentStep, "Loading:", isLoading);
+
   if (isLoading) {
-    return <div className="min-h-screen bg-assistant-background flex items-center justify-center">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-assistant-primary" />
-    </div>;
+    return (
+      <div className="min-h-screen bg-assistant-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-assistant-primary" />
+      </div>
+    );
   }
 
   if (currentStep === "complete") {

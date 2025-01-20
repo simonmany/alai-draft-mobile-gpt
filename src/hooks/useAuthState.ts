@@ -11,16 +11,18 @@ export const useAuthState = () => {
   const { toast } = useToast();
 
   const determineStep = (profile: any) => {
+    if (!profile) {
+      return "email";
+    }
+
     if (profile.onboarding_completed) {
       return "complete";
     }
 
-    // If phone number is not set, user needs to complete that step
     if (!profile.phone_number) {
       return "phone";
     }
 
-    // Otherwise, use the onboarding step to determine the current step
     switch (profile.onboarding_step) {
       case 1:
         return "phone";
@@ -40,28 +42,32 @@ export const useAuthState = () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         
-        if (session?.user) {
-          console.log("User session found:", session.user.id);
-          
-          const { data: profile, error: profileError } = await supabase
-            .from('profiles')
-            .select('phone_number, onboarding_completed, onboarding_step')
-            .eq('id', session.user.id)
-            .single();
-
-          if (profileError) {
-            console.error("Profile fetch error:", profileError);
-            await supabase.auth.signOut();
-            setCurrentStep("email");
-            setIsLoading(false);
-            return;
-          }
-
-          console.log("Profile data:", profile);
-          const nextStep = determineStep(profile);
-          console.log("Determined next step:", nextStep);
-          setCurrentStep(nextStep);
+        if (!session?.user) {
+          setCurrentStep("email");
+          setIsLoading(false);
+          return;
         }
+
+        console.log("User session found:", session.user.id);
+        
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('phone_number, onboarding_completed, onboarding_step')
+          .eq('id', session.user.id)
+          .single();
+
+        if (profileError) {
+          console.error("Profile fetch error:", profileError);
+          await supabase.auth.signOut();
+          setCurrentStep("email");
+          setIsLoading(false);
+          return;
+        }
+
+        console.log("Profile data:", profile);
+        const nextStep = determineStep(profile);
+        console.log("Determined next step:", nextStep);
+        setCurrentStep(nextStep);
       } catch (error) {
         console.error("Session check error:", error);
         await supabase.auth.signOut();
@@ -76,6 +82,7 @@ export const useAuthState = () => {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log("Auth state change:", event);
+      setIsLoading(true);
       
       if (event === 'SIGNED_IN' && session) {
         try {
@@ -105,6 +112,7 @@ export const useAuthState = () => {
         setCurrentStep("email");
         setError(null);
       }
+      setIsLoading(false);
     });
 
     return () => {
