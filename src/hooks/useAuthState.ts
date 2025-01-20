@@ -6,7 +6,7 @@ export type AuthStep = "email" | "phone" | "personality" | "interests" | "photos
 
 export const useAuthState = () => {
   const [currentStep, setCurrentStep] = useState<AuthStep>("email");
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
@@ -42,9 +42,11 @@ export const useAuthState = () => {
 
     const checkSession = async () => {
       try {
+        if (!mounted) return;
+        setIsLoading(true);
         console.log("Checking session...");
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         if (sessionError) throw sessionError;
 
         if (!session?.user) {
@@ -97,6 +99,7 @@ export const useAuthState = () => {
       
       if (event === 'SIGNED_IN' && session) {
         try {
+          setIsLoading(true);
           const { data: profile, error: profileError } = await supabase
             .from('profiles')
             .select('onboarding_completed, onboarding_step')
@@ -107,13 +110,17 @@ export const useAuthState = () => {
 
           const nextStep = determineStep(profile);
           console.log("Auth change: setting next step to:", nextStep);
-          setCurrentStep(nextStep);
-          setIsLoading(false);
+          if (mounted) {
+            setCurrentStep(nextStep);
+            setIsLoading(false);
+          }
         } catch (error) {
           console.error("Error in auth state change:", error);
-          setCurrentStep("email");
-          setError(error instanceof Error ? error.message : "An error occurred");
-          setIsLoading(false);
+          if (mounted) {
+            setCurrentStep("email");
+            setError(error instanceof Error ? error.message : "An error occurred");
+            setIsLoading(false);
+          }
         }
       }
     });

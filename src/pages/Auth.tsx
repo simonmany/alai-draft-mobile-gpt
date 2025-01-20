@@ -9,13 +9,11 @@ const Auth = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    const checkSession = async () => {
+    const checkAuthAndProfile = async () => {
       try {
         console.log("Auth page: Checking profile...");
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        const { data: { session } } = await supabase.auth.getSession();
         
-        if (sessionError) throw sessionError;
-
         if (!session) {
           console.log("No session found in Auth page");
           return;
@@ -32,7 +30,7 @@ const Auth = () => {
 
         console.log("Profile check in Auth:", profile);
         
-        if (profile.onboarding_completed) {
+        if (profile?.onboarding_completed) {
           console.log("Onboarding completed, navigating to home");
           navigate('/', { replace: true });
         }
@@ -46,7 +44,7 @@ const Auth = () => {
       }
     };
 
-    checkSession();
+    checkAuthAndProfile();
   }, [navigate, toast]);
 
   return <AuthContainer />;
