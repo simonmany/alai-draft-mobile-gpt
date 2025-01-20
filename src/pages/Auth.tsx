@@ -9,7 +9,7 @@ const Auth = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    const checkProfile = async () => {
+    const checkSession = async () => {
       try {
         console.log("Auth page: Checking profile...");
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
