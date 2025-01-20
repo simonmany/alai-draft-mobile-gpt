@@ -19,51 +19,62 @@ const AuthContainer = () => {
   useEffect(() => {
     const checkSession = async () => {
       console.log("Checking session...");
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
-      if (sessionError) {
-        console.error("Session error:", sessionError);
-        return;
-      }
-
-      console.log("Session check result:", session);
-      
-      if (session?.user) {
-        console.log("User found in session:", session.user.id);
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('onboarding_completed, onboarding_step')
-          .eq('id', session.user.id)
-          .single();
-
-        if (profileError) {
-          console.error("Profile fetch error:", profileError);
+      try {
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error("Session error:", sessionError);
           return;
         }
 
-        console.log("Profile data:", profile);
+        console.log("Session check result:", session);
+        
+        if (session?.user) {
+          console.log("User found in session:", session.user.id);
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('onboarding_completed, onboarding_step')
+            .eq('id', session.user.id)
+            .single();
 
-        if (profile?.onboarding_completed) {
-          console.log("Onboarding completed, navigating to home");
-          navigate("/", { replace: true });
-        } else {
-          console.log("Setting current step based on onboarding_step:", profile?.onboarding_step);
-          switch (profile?.onboarding_step) {
-            case 1:
-              setCurrentStep("phone");
-              break;
-            case 2:
-              setCurrentStep("personality");
-              break;
-            case 3:
-              setCurrentStep("interests");
-              break;
-            default:
-              setCurrentStep("phone");
+          if (profileError) {
+            console.error("Profile fetch error:", profileError);
+            console.error("Full profile error details:", profileError);
+            return;
           }
+
+          console.log("Profile data:", profile);
+          console.log("Current onboarding step:", profile?.onboarding_step);
+          console.log("Onboarding completed:", profile?.onboarding_completed);
+
+          if (profile?.onboarding_completed) {
+            console.log("Onboarding completed, navigating to home");
+            navigate("/", { replace: true });
+          } else {
+            console.log("Setting current step based on onboarding_step:", profile?.onboarding_step);
+            switch (profile?.onboarding_step) {
+              case 1:
+                console.log("Setting step to phone");
+                setCurrentStep("phone");
+                break;
+              case 2:
+                console.log("Setting step to personality");
+                setCurrentStep("personality");
+                break;
+              case 3:
+                console.log("Setting step to interests");
+                setCurrentStep("interests");
+                break;
+              default:
+                console.log("Setting default step to phone");
+                setCurrentStep("phone");
+            }
+          }
+        } else {
+          console.log("No session found, staying on auth page");
         }
-      } else {
-        console.log("No session found, staying on auth page");
+      } catch (error) {
+        console.error("Unexpected error in checkSession:", error);
       }
     };
 
@@ -74,6 +85,7 @@ const AuthContainer = () => {
       console.log("Session in auth change:", session);
 
       if (event === 'SIGNED_IN' && session) {
+        console.log("Signed in, checking session...");
         await checkSession();
       }
     });
