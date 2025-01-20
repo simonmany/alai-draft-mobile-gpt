@@ -40,6 +40,7 @@ const AuthContainer = () => {
           <PhoneSignupStep 
             onSubmit={async (values) => {
               try {
+                setIsLoading(true);
                 const { data: { session } } = await supabase.auth.getSession();
                 if (!session?.user) throw new Error("No user found");
 
@@ -68,6 +69,8 @@ const AuthContainer = () => {
                   description: errorMessage,
                   variant: "destructive",
                 });
+              } finally {
+                setIsLoading(false);
               }
             }}
           />
@@ -77,6 +80,7 @@ const AuthContainer = () => {
           <PersonalityAssessment 
             onComplete={async (personalityData) => {
               try {
+                setIsLoading(true);
                 const { data: { session } } = await supabase.auth.getSession();
                 if (!session?.user) throw new Error("No user found");
 
@@ -118,6 +122,8 @@ const AuthContainer = () => {
                   description: errorMessage,
                   variant: "destructive",
                 });
+              } finally {
+                setIsLoading(false);
               }
             }}
           />
@@ -127,6 +133,7 @@ const AuthContainer = () => {
           <InterestsSelection 
             onComplete={async () => {
               try {
+                setIsLoading(true);
                 const { data: { session } } = await supabase.auth.getSession();
                 if (!session?.user) throw new Error("No user found");
 
@@ -151,6 +158,8 @@ const AuthContainer = () => {
                   description: errorMessage,
                   variant: "destructive",
                 });
+              } finally {
+                setIsLoading(false);
               }
             }}
           />

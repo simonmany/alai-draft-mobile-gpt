@@ -6,7 +6,7 @@ export type AuthStep = "email" | "phone" | "personality" | "interests" | "comple
 
 export const useAuthState = () => {
   const [currentStep, setCurrentStep] = useState<AuthStep>("email");
-  const [isLoading, setIsLoading] = useState(false); // Changed to false initially
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
@@ -15,10 +15,6 @@ export const useAuthState = () => {
     
     if (profile.onboarding_completed) {
       return "complete";
-    }
-
-    if (!profile.phone_number) {
-      return "phone";
     }
 
     switch (profile.onboarding_step) {
@@ -40,9 +36,11 @@ export const useAuthState = () => {
 
     const checkSession = async () => {
       try {
+        console.log("Checking session...");
         const { data: { session } } = await supabase.auth.getSession();
         
         if (!session?.user) {
+          console.log("No session found");
           if (mounted) {
             setCurrentStep("email");
             setIsLoading(false);
@@ -50,6 +48,7 @@ export const useAuthState = () => {
           return;
         }
 
+        console.log("Session found, fetching profile...");
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('phone_number, onboarding_completed, onboarding_step')
@@ -59,12 +58,14 @@ export const useAuthState = () => {
         if (profileError) throw profileError;
 
         if (mounted) {
+          console.log("Profile found:", profile);
           const nextStep = determineStep(profile);
+          console.log("Next step determined:", nextStep);
           setCurrentStep(nextStep);
           setIsLoading(false);
         }
       } catch (error) {
-        console.error("Session check error:", error);
+        console.error("Error in checkSession:", error);
         if (mounted) {
           setCurrentStep("email");
           setError(error instanceof Error ? error.message : "An error occurred");
@@ -74,31 +75,12 @@ export const useAuthState = () => {
     };
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("Auth state change event:", event);
+      
       if (event === 'SIGNED_IN' && session) {
         if (mounted) {
           setIsLoading(true);
-          try {
-            const { data: profile, error: profileError } = await supabase
-              .from('profiles')
-              .select('phone_number, onboarding_completed, onboarding_step')
-              .eq('id', session.user.id)
-              .maybeSingle();
-
-            if (profileError) throw profileError;
-
-            if (mounted) {
-              const nextStep = determineStep(profile);
-              setCurrentStep(nextStep);
-              setIsLoading(false);
-            }
-          } catch (error) {
-            console.error("Error handling auth state change:", error);
-            if (mounted) {
-              setCurrentStep("email");
-              setError(error instanceof Error ? error.message : "An error occurred");
-              setIsLoading(false);
-            }
-          }
+          await checkSession();
         }
       } else if (event === 'SIGNED_OUT') {
         if (mounted) {
@@ -109,18 +91,19 @@ export const useAuthState = () => {
       }
     });
 
-    // Only check session if we're not already on the email step
-    if (currentStep !== "email") {
-      checkSession();
-    } else {
+    // Only check session if not on email step
+    if (currentStep === "email") {
       setIsLoading(false);
+    } else {
+      setIsLoading(true);
+      checkSession();
     }
 
     return () => {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [toast]);
+  }, []);
 
   return {
     currentStep,
