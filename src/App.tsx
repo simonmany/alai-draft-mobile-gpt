@@ -13,6 +13,7 @@ import Auth from "@/pages/Auth";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [onboardingCompleted, setOnboardingCompleted] = useState<boolean | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -24,15 +25,33 @@ function App() {
           console.error("Session error:", sessionError);
           await supabase.auth.signOut();
           setIsAuthenticated(false);
+          setOnboardingCompleted(null);
           return;
         }
 
         console.log("Initial session check:", session ? "Authenticated" : "Not authenticated");
         setIsAuthenticated(!!session);
+
+        if (session?.user) {
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('onboarding_completed')
+            .eq('id', session.user.id)
+            .single();
+
+          if (profileError) {
+            console.error("Profile fetch error:", profileError);
+            setOnboardingCompleted(null);
+            return;
+          }
+
+          setOnboardingCompleted(profile.onboarding_completed);
+        }
       } catch (error) {
         console.error("Session check error:", error);
         await supabase.auth.signOut();
         setIsAuthenticated(false);
+        setOnboardingCompleted(null);
       }
     };
 
@@ -45,15 +64,33 @@ function App() {
         console.log("Token refresh failed, signing out");
         await supabase.auth.signOut();
         setIsAuthenticated(false);
+        setOnboardingCompleted(null);
         return;
       }
 
       if (event === 'SIGNED_OUT') {
         setIsAuthenticated(false);
+        setOnboardingCompleted(null);
         return;
       }
 
       setIsAuthenticated(!!session);
+
+      if (session?.user) {
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('onboarding_completed')
+          .eq('id', session.user.id)
+          .single();
+
+        if (profileError) {
+          console.error("Profile fetch error:", profileError);
+          setOnboardingCompleted(null);
+          return;
+        }
+
+        setOnboardingCompleted(profile.onboarding_completed);
+      }
     });
 
     return () => {
@@ -70,10 +107,26 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/auth" element={isAuthenticated ? <Navigate to="/" /> : <Auth />} />
+        <Route 
+          path="/auth" 
+          element={
+            isAuthenticated && onboardingCompleted 
+              ? <Navigate to="/" /> 
+              : <Auth />
+          } 
+        />
         
         {/* Protected routes */}
-        <Route path="/" element={isAuthenticated ? <Layout /> : <Navigate to="/auth" />}>
+        <Route 
+          path="/" 
+          element={
+            !isAuthenticated 
+              ? <Navigate to="/auth" />
+              : !onboardingCompleted
+                ? <Navigate to="/auth" />
+                : <Layout />
+          }
+        >
           <Route index element={<Index />} />
           <Route path="calendar" element={<Calendar />} />
           <Route path="contacts" element={<Contacts />} />
