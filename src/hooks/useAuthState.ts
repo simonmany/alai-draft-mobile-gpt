@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
-export type AuthStep = "email" | "phone" | "personality" | "interests" | "complete";
+export type AuthStep = "email" | "phone" | "personality" | "interests" | "photos" | "complete";
 
 export const useAuthState = () => {
   const [currentStep, setCurrentStep] = useState<AuthStep>("email");
@@ -29,7 +29,7 @@ export const useAuthState = () => {
       case 3:
         return "interests";
       case 4:
-        return "complete";
+        return "photos";
       default:
         return "phone";
     }

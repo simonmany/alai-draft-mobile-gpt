@@ -1,11 +1,11 @@
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import { AuthError } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { getAuthErrorMessage } from "@/utils/authErrors";
 import PhoneSignupStep from "./PhoneSignupStep";
 import PersonalityAssessment from "../onboarding/personality/PersonalityAssessment";
 import InterestsSelection from "../onboarding/InterestsSelection";
+import PhotosAccessScreen from "../onboarding/PhotosAccessScreen";
 import { useAuthState } from "@/hooks/useAuthState";
 import AuthUI from "./AuthUI";
 import type { Json } from "@/integrations/supabase/types";
@@ -130,17 +130,46 @@ const AuthContainer = () => {
                 const { error: profileError } = await supabase
                   .from('profiles')
                   .update({ 
-                    onboarding_completed: true,
                     onboarding_step: 4
                   })
                   .eq('id', session.user.id);
 
                 if (profileError) throw profileError;
 
-                setCurrentStep("complete");
-                navigate("/", { replace: true });
+                setCurrentStep("photos");
               } catch (error) {
                 console.error('Error completing interests:', error);
+                const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
+                setError(errorMessage);
+                toast({
+                  title: "Error",
+                  description: errorMessage,
+                  variant: "destructive",
+                });
+              }
+            }}
+          />
+        )}
+
+        {currentStep === "photos" && (
+          <PhotosAccessScreen 
+            onComplete={async () => {
+              try {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session?.user) throw new Error("No user found");
+
+                const { error: profileError } = await supabase
+                  .from('profiles')
+                  .update({ 
+                    onboarding_completed: true
+                  })
+                  .eq('id', session.user.id);
+
+                if (profileError) throw profileError;
+
+                setCurrentStep("complete");
+              } catch (error) {
+                console.error('Error completing photos step:', error);
                 const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
                 setError(errorMessage);
                 toast({
