@@ -18,23 +18,70 @@ const AuthContainer = () => {
 
   useEffect(() => {
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      console.log("Checking session...");
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        console.error("Session error:", sessionError);
+        return;
+      }
+
+      console.log("Session check result:", session);
+      
       if (session?.user) {
-        const { data: profile } = await supabase
+        console.log("User found in session:", session.user.id);
+        const { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .select('onboarding_completed')
+          .select('onboarding_completed, onboarding_step')
           .eq('id', session.user.id)
           .single();
 
-        if (profile?.onboarding_completed) {
-          console.log("User has completed onboarding, navigating to home");
-          navigate("/", { replace: true });
+        if (profileError) {
+          console.error("Profile fetch error:", profileError);
+          return;
         }
+
+        console.log("Profile data:", profile);
+
+        if (profile?.onboarding_completed) {
+          console.log("Onboarding completed, navigating to home");
+          navigate("/", { replace: true });
+        } else {
+          console.log("Setting current step based on onboarding_step:", profile?.onboarding_step);
+          switch (profile?.onboarding_step) {
+            case 1:
+              setCurrentStep("phone");
+              break;
+            case 2:
+              setCurrentStep("personality");
+              break;
+            case 3:
+              setCurrentStep("interests");
+              break;
+            default:
+              setCurrentStep("phone");
+          }
+        }
+      } else {
+        console.log("No session found, staying on auth page");
       }
     };
 
     checkSession();
-  }, [navigate]);
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("Auth state change event:", event);
+      console.log("Session in auth change:", session);
+
+      if (event === 'SIGNED_IN' && session) {
+        await checkSession();
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [navigate, setCurrentStep]);
 
   useEffect(() => {
     if (currentStep === "complete") {
