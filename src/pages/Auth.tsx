@@ -9,7 +9,14 @@ const Auth = () => {
   useEffect(() => {
     const checkProfile = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error("Session error in Auth:", sessionError);
+          await supabase.auth.signOut();
+          return;
+        }
+
         if (!session) return;
 
         const { data: profile, error: profileError } = await supabase
@@ -20,6 +27,7 @@ const Auth = () => {
 
         if (profileError) {
           console.error("Profile fetch error:", profileError);
+          await supabase.auth.signOut();
           return;
         }
 
@@ -31,10 +39,11 @@ const Auth = () => {
         }
       } catch (error) {
         console.error("Error checking profile:", error);
+        await supabase.auth.signOut();
       }
     };
 
-    checkProfile();
+    checkSession();
   }, [navigate]);
 
   return <AuthContainer />;

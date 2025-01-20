@@ -18,19 +18,41 @@ function App() {
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error("Session error:", sessionError);
+          await supabase.auth.signOut();
+          setIsAuthenticated(false);
+          return;
+        }
+
         console.log("Initial session check:", session ? "Authenticated" : "Not authenticated");
         setIsAuthenticated(!!session);
       } catch (error) {
         console.error("Session check error:", error);
+        await supabase.auth.signOut();
         setIsAuthenticated(false);
       }
     };
 
     checkSession();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log("Auth state change:", event, session ? "Authenticated" : "Not authenticated");
+      
+      if (event === 'TOKEN_REFRESHED' && !session) {
+        console.log("Token refresh failed, signing out");
+        await supabase.auth.signOut();
+        setIsAuthenticated(false);
+        return;
+      }
+
+      if (event === 'SIGNED_OUT') {
+        setIsAuthenticated(false);
+        return;
+      }
+
       setIsAuthenticated(!!session);
     });
 
