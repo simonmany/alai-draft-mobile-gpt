@@ -11,7 +11,7 @@ import type { Json } from "@/integrations/supabase/types";
 const AuthContainer = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { currentStep, setCurrentStep, isLoading, error, setError } = useAuthState();
+  const { currentStep, setCurrentStep, isLoading, setIsLoading, error, setError } = useAuthState();
 
   console.log("AuthContainer rendering - Current Step:", currentStep, "Loading:", isLoading);
 
